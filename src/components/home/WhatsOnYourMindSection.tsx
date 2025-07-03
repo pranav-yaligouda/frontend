@@ -12,7 +12,6 @@ import { DISH_CATEGORIES, MEAL_TYPE_IMAGES } from "@/constants/dishCategorizatio
 // };
 
 import React, { useState, useMemo, useEffect } from "react";
-import HotelCard from "@/components/hotel/HotelCard";
 import { useAuth } from "@/context/AuthContext";
 import { getStandardDishes } from "@/utils/hotelApi";
 
@@ -23,7 +22,6 @@ interface Dish {
   image?: string;
   hotelName: string;
   hotelId: string;
-  hotel_id?: string; // allow for backend _id passthrough
   categories?: string[];
   veg: boolean;
   description?: string;
@@ -151,26 +149,8 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
                       View Menu
                     </a>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
-                    {/* Show up to 3 dishes per hotel */}
-                    {dishes.slice(0, 3).map((dish) => {
-                      // Normalize hotel id for robust routing
-                      const hotelId = dish.hotelId || dish.hotel_id;
-                      const hotelObj = {
-                        id: hotelId,
-                        _id: dish.hotel_id || dish.hotelId,
-                        name: hotelName,
-                        image: dish.image || DEFAULT_DISH_IMAGE,
-                        rating: undefined,
-                        deliveryTime: undefined,
-                        cuisine: undefined,
-                        location: undefined,
-                        dishes: [],
-                      };
-                      return (
-                        <HotelCard key={dish.id} hotel={hotelObj} />
-                      );
-                    })}
+                  <div className="w-full flex justify-center items-center my-2">
+                    <div className="h-[1.5px] w-11/12 bg-athani-100 rounded-full" />
                   </div>
                   <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar snap-x snap-mandatory px-1 sm:px-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                     {dishes.map((dish, idx) => (
