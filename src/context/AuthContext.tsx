@@ -1,0 +1,130 @@
+
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+// User roles
+// Unified user roles (matches backend exactly)
+export enum UserRole {
+  CUSTOMER = 'customer',
+  HOTEL_MANAGER = 'hotel_manager',
+  STORE_OWNER = 'store_owner',
+  DELIVERY_AGENT = 'delivery_agent',
+  ADMIN = 'admin'
+}
+
+// User interface
+export interface User {
+  id: string;
+  name: string;
+  email?: string; // Made optional
+  phone: string; // Added phone field
+  role: UserRole;
+  storeName?: string; // For store_owner
+  hotelName?: string; // For hotel_manager
+}
+
+// Auth context interface
+interface AuthContextType {
+  user: User | null;
+  isLoading: boolean;
+  login: (phone: string, password: string) => Promise<void>;
+  signup: (name: string, phone: string, password: string, role: UserRole, email?: string, storeId?: string, hotelId?: string) => Promise<void>;
+  logout: () => void;
+  isAuthenticated: boolean;
+  hasRole: (roles: UserRole[]) => boolean;
+}
+
+// Create auth context
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+
+// No more mock users: use real API
+import * as authApi from '@/utils/authApi';
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check for saved user on initial load
+  useEffect(() => {
+    const savedUser = localStorage.getItem('athani_user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+    setIsLoading(false);
+  }, []);
+
+  // Login function
+  const login = async (phone: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const data = await authApi.login({ phone, password });
+      setUser(data.user);
+      localStorage.setItem('athani_user', JSON.stringify(data.user));
+      localStorage.setItem('athani_token', data.token);
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Signup function
+  const signup = async (name: string, phone: string, password: string, role: UserRole, email?: string, storeName?: string, hotelName?: string) => {
+    setIsLoading(true);
+    try {
+      const payload: authApi.RegisterPayload = {
+        name,
+        phone,
+        password,
+        role,
+        email,
+        storeName,
+        hotelName
+      };
+      const data = await authApi.register(payload);
+      setUser(data.user);
+      localStorage.setItem('athani_user', JSON.stringify(data.user));
+      localStorage.setItem('athani_token', data.token);
+    } catch (error) {
+      console.error('Signup failed:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+  // Logout function
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('athani_user');
+  };
+
+  // Check if user has specific role
+  const hasRole = (roles: UserRole[]) => {
+    return !!user && roles.includes(user.role);
+  };
+
+  return (
+    <AuthContext.Provider value={{
+      user,
+      isLoading,
+      login,
+      signup,
+      logout,
+      isAuthenticated: !!user,
+      hasRole
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
