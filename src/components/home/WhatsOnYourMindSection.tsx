@@ -12,6 +12,7 @@ import { DISH_CATEGORIES, MEAL_TYPE_IMAGES } from "@/constants/dishCategorizatio
 // };
 
 import React, { useState, useMemo, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { getStandardDishes } from "@/utils/hotelApi";
 
@@ -141,13 +142,25 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
                 <div className="rounded-2xl shadow-lg border border-athani-100 bg-white/95 px-2 py-2 sm:px-4 sm:py-4 flex flex-col gap-2">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-2 pt-2">
                     <span className="text-base md:text-lg font-bold text-athani-700 truncate block mb-1 sm:mb-0">{hotelName}</span>
-                    <a
-                      href={`/hotel-menu/${dishes[0]?.hotelId}`}
-                      className="inline-flex items-center gap-1 px-4 py-1.5 rounded-full bg-athani-600 hover:bg-athani-700 text-white font-semibold text-xs md:text-sm shadow transition-all duration-150 focus-visible:ring-2 focus-visible:ring-athani-500"
-                      tabIndex={0}
-                    >
-                      View Menu
-                    </a>
+                    {(() => {
+                      const hotelId = dishes[0]?.hotelId;
+                      if (!hotelId) {
+                        return (
+                          <span className="inline-flex items-center gap-1 px-4 py-1.5 rounded-full bg-gray-300 text-gray-500 font-semibold text-xs md:text-sm shadow cursor-not-allowed">
+                            No Menu
+                          </span>
+                        );
+                      }
+                      return (
+                        <Link
+                          to={`/hotel-menu/${hotelId}`}
+                          className="inline-flex items-center gap-1 px-4 py-1.5 rounded-full bg-athani-600 hover:bg-athani-700 text-white font-semibold text-xs md:text-sm shadow transition-all duration-150 focus-visible:ring-2 focus-visible:ring-athani-500"
+                          tabIndex={0}
+                        >
+                          View Menu
+                        </Link>
+                      );
+                    })()}
                   </div>
                   <div className="w-full flex justify-center items-center my-2">
                     <div className="h-[1.5px] w-11/12 bg-athani-100 rounded-full" />
