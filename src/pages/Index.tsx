@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
+import type { Dish } from "@/types/Dish";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductGrid from "@/components/product/ProductGrid";
 import CategoryCard from "@/components/category/CategoryCard";
 import StoreCard from "@/components/store/StoreCard";
-import HotelCard from "@/components/hotel/HotelCard";
 import PerfectionSection from "@/components/home/PerfectionSection";
 import { Product, Category, Store, categories, stores, getFeaturedProducts } from "@/data/models";
-import { ChevronRight, UtensilsCrossed, ShoppingCart, Plus, Star, MapPin } from "lucide-react";
+import { ChevronRight, Star, MapPin } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 import { getAllHotels } from "@/utils/hotelApi";
@@ -16,8 +16,19 @@ import WhatsOnYourMindSection from "@/components/home/WhatsOnYourMindSection";
 import HomeCategoryTabs from "@/components/home/HomeCategoryTabs";
 
 const Index = () => {
-  const [hotels, setHotels] = useState<any[]>([]);
-  const [normalizedDishes, setNormalizedDishes] = useState<any[]>([]);
+  type Hotel = {
+    id: string;
+    _id?: string;
+    name: string;
+    image?: string;
+    rating?: number;
+    location?: string | { address?: string };
+    cuisine?: string;
+    dishes?: Dish[];
+    deliveryTime?: string;
+  };
+  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [normalizedDishes, setNormalizedDishes] = useState<Dish[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { addItem } = useCart();
@@ -27,13 +38,13 @@ const Index = () => {
       setIsLoading(true);
       try {
         const hotelsData = await getAllHotels();
-        const normalizedHotels = hotelsData.map((hotel: any) => ({
+        const normalizedHotels = hotelsData.map((hotel: Hotel) => ({
           ...hotel,
           id: hotel._id || hotel.id, // Ensure 'id' is always present
         }));
         setHotels(normalizedHotels);
         // Flatten all hotel dishes into a single array, attaching hotel info
-        const normalized = [];
+        const normalized: Dish[] = [];
         for (const hotel of hotelsData) {
           for (const hotelDish of hotel.dishes || []) {
             normalized.push({
@@ -66,7 +77,7 @@ const Index = () => {
     fetchFeaturedProducts();
   }, []);
 
-  const handleAddDishToCart = (dish: any) => {
+  const handleAddDishToCart = (dish: Dish) => {
     addItem({
       id: `${dish.hotelId}_${dish.id}`,
       productId: dish.id,
@@ -100,30 +111,49 @@ const Index = () => {
   return (
     <div className="pb-16 bg-gradient-to-b from-primary-100 via-primary-50 to-white min-h-screen">
       {/* Food Delivery Section (default) */}
-      <div ref={sectionRefs.food_delivery} className="pt-8">
-        <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+      <div ref={sectionRefs.food_delivery}>
+        <section className="bg-gradient-to-b from-gray-50 to-white">
           <div className="container px-4 mx-auto">
             <Tabs defaultValue="food" className="w-full">
-              {/* Enhanced Food & Grocery Tabs */}
-              <div className="flex justify-center w-full">
-  <TabsList className="flex rounded-full border border-athani-200 bg-white max-w-xs w-full overflow-hidden p-0">
-    <TabsTrigger
-      value="food"
-      className="flex-1 px-3 sm:px-5 py-2 rounded-full font-semibold text-base md:text-lg transition-all duration-200 border-0 shadow-none data-[state=active]:bg-athani-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=inactive]:bg-transparent data-[state=inactive]:text-athani-700"
-    >
-      Food Delivery
-    </TabsTrigger>
-    <TabsTrigger
-      value="grocery"
-      className="flex-1 px-3 sm:px-5 py-2 rounded-full font-semibold text-base md:text-lg transition-all duration-200 border-0 shadow-none data-[state=active]:bg-accent-500 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=inactive]:bg-transparent data-[state=inactive]:text-athani-700"
-    >
-      Grocery Shopping
-    </TabsTrigger>
-  </TabsList>
-</div>
+              {/* Advanced Food & Grocery Switch */}
+              <div className="flex justify-center w-full mt-2 mb-4">
+                <div className="w-full max-w-lg px-2">
+                  <TabsList
+                    className="flex w-full rounded-full bg-white shadow-md border border-athani-100 p-1 gap-1 items-center justify-between"
+                    style={{ minHeight: '3.25rem' }}
+                  >
+                    <TabsTrigger
+                      value="food"
+                      className="flex-1 px-4 py-2.5 rounded-full font-bold text-base md:text-lg transition-all duration-200 border-0 focus:outline-none focus:ring-2 focus:ring-athani-400 data-[state=active]:bg-gradient-to-r data-[state=active]:from-athani-500 data-[state=active]:to-athani-400 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:scale-105 data-[state=inactive]:bg-transparent data-[state=inactive]:text-athani-700"
+                      style={{ minWidth: '120px', minHeight: '2.75rem' }}
+                    >
+                      Food Delivery
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="grocery"
+                      className="flex-1 px-4 py-2.5 rounded-full font-bold text-base md:text-lg transition-all duration-200 border-0 focus:outline-none focus:ring-2 focus:ring-green-400 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-green-400 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:scale-105 data-[state=inactive]:bg-transparent data-[state=inactive]:text-athani-700"
+                      style={{ minWidth: '120px', minHeight: '2.75rem' }}
+                    >
+                      Grocery Shopping
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+              </div>
 
               {/* Food Tab Content */}
               <TabsContent value="food" className="space-y-12">
+                {/* Search Bar for Food Delivery (all screens) */}
+                <div className="w-full mb-4">
+                  <form className="flex items-center rounded-full bg-white shadow px-3 py-2 border border-athani-200">
+                    <input
+                      type="search"
+                      placeholder="Search for dishes or restaurants..."
+                      className="flex-1 bg-transparent outline-none px-2 text-sm"
+                      style={{ minWidth: 0 }}
+                    />
+                    <button type="submit" className="ml-2 px-3 py-1.5 bg-athani-600 text-white rounded-full text-sm font-semibold">Search</button>
+                  </form>
+                </div>
                 {/* What's On Your Mind Section (only for Food Delivery) */}
                 <WhatsOnYourMindSection
                   onCategorySelect={handleCategorySelect}
@@ -189,7 +219,7 @@ const Index = () => {
                                       <img
                                         src={(() => {
                                           const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api/v1').replace(/\/api\/v1$/, '');
-                                          return dish.image && !/^https?:\/-\//.test(dish.image)
+                                          return dish.image && !/^https?:\/\//.test(dish.image)
                                             ? `${apiBase}/uploads/${dish.image}`
                                             : dish.image;
                                         })()}
@@ -202,7 +232,7 @@ const Index = () => {
                                 </div>
                               </div>
                             )}
-                            <Button asChild className="mt-auto w-full bg-athani-600 hover:bg-athani-700 text-white font-semibold rounded-lg py-2 transition">
+                            <Button asChild className="mt-auto w-full bg-cyan-700 hover:bg-cyan-800 text-white font-semibold rounded-lg py-2 transition">
                               <Link to={`/hotel-menu/${hotel.id}`}>View Menu</Link>
                             </Button>
                           </div>
@@ -245,6 +275,18 @@ const Index = () => {
               </TabsContent>
               {/* Grocery Tab Content */}
               <TabsContent value="grocery" className="space-y-12">
+                {/* Search Bar for Grocery Shopping (all screens) */}
+                <div className="w-full mb-4">
+                  <form className="flex items-center rounded-full bg-white shadow px-3 py-2 border border-green-200">
+                    <input
+                      type="search"
+                      placeholder="Search for grocery products or stores..."
+                      className="flex-1 bg-transparent outline-none px-2 text-sm"
+                      style={{ minWidth: 0 }}
+                    />
+                    <button type="submit" className="ml-2 px-3 py-1.5 bg-green-600 text-white rounded-full text-sm font-semibold">Search</button>
+                  </form>
+                </div>
                 {/* Categories Section */}
                 <div className="bg-green-50 rounded-2xl p-8">
                   <div className="flex items-center justify-between mb-8">
