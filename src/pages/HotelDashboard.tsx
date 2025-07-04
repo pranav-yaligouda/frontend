@@ -174,10 +174,33 @@ const HotelDashboardInner: React.FC = () => {
   }
   if (loading || hotelLoading) return <div className="flex items-center justify-center h-[60vh]">Loading...</div>;
 
-  // Show blocking modal if hotel info is missing or incomplete
-  const isHotelInfoIncomplete = !hotel || !hotel.name || !hotel.location || !hotel.timings;
+  // Improved check: Only show modal if required fields are missing or incomplete
+  function isHotelInfoIncomplete(hotel: any): boolean {
+    if (!hotel) return true;
+    if (!hotel.name || typeof hotel.name !== 'string' || hotel.name.trim().length === 0) return true;
+    // Location must exist and have valid coordinates and address
+    if (!hotel.location ||
+        !Array.isArray(hotel.location.coordinates) ||
+        hotel.location.coordinates.length < 2 ||
+        typeof hotel.location.coordinates[0] !== 'number' ||
+        typeof hotel.location.coordinates[1] !== 'number' ||
+        !hotel.location.address || hotel.location.address.trim().length === 0) {
+      return true;
+    }
+    // Timings must exist and have all 7 days
+    const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    if (!hotel.timings || typeof hotel.timings !== 'object') return true;
+    for (const day of weekdays) {
+      const t = hotel.timings[day];
+      if (!t || typeof t.open !== 'string' || typeof t.close !== 'string' || typeof t.holiday !== 'boolean') {
+        return true;
+      }
+    }
+    // All required info present
+    return false;
+  }
 
-  if (isHotelInfoIncomplete) {
+  if (isHotelInfoIncomplete(hotel)) {
     return (
       <HotelInfoModal
         open={true}
@@ -186,8 +209,8 @@ const HotelDashboardInner: React.FC = () => {
           image: hotel.image,
           address: hotel.location?.address || '',
           location: (hotel.location && Array.isArray(hotel.location.coordinates) && hotel.location.coordinates.length >= 2)
-  ? { lat: hotel.location.coordinates[1], lng: hotel.location.coordinates[0], address: hotel.location.address || '' }
-  : { lat: 12.9716, lng: 77.5946, address: hotel.location?.address || '' },
+            ? { lat: hotel.location.coordinates[1], lng: hotel.location.coordinates[0], address: hotel.location.address || '' }
+            : { lat: 12.9716, lng: 77.5946, address: hotel.location?.address || '' },
           timings: hotel.timings,
           holidays: hotel.holidays,
         } : undefined}

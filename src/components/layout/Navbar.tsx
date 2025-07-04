@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, User, Search, Menu, PhoneCall } from "lucide-react";
+import { ShoppingCart, User, Search, PhoneCall } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth, UserRole } from "@/context/AuthContext";
@@ -17,7 +17,6 @@ const Navbar = () => {
   const { user, logout, isAuthenticated, hasRole } = useAuth();
   const { getItemCount } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleSearch = (e: React.FormEvent) => {
@@ -27,9 +26,7 @@ const Navbar = () => {
     }
   };
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
+  // Mobile menu/hamburger logic removed
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm">
@@ -46,27 +43,8 @@ const Navbar = () => {
             <span className="text-xl font-bold text-primary">Athani Mart</span>
           </Link>
 
-          {/* Search Bar (hidden on mobile) */}
-          <form
-            onSubmit={handleSearch}
-            className="items-center flex-1 hidden ml-6 md:flex"
-          >
-            <div className="relative flex-1">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Search className="w-4 h-4 text-gray-400" />
-              </div>
-              <Input
-                type="search"
-                placeholder="Search for products..."
-                className="w-full pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <Button type="submit" className="ml-2">
-              Search
-            </Button>
-          </form>
+          {/* Search Bar (desktop only) */}
+
 
           {/* Navigation Links */}
           <nav className="items-center hidden space-x-6 md:flex">
@@ -146,7 +124,7 @@ const Navbar = () => {
             )}
           </nav>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Cart Icon (optional for mobile, can keep or remove for consistency) */}
           <div className="flex items-center space-x-4 md:hidden">
             <Link
               to="/cart"
@@ -159,105 +137,10 @@ const Navbar = () => {
                 </span>
               )}
             </Link>
-            <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
-              <Menu className="w-6 h-6" />
-            </Button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="pt-4 pb-3 md:hidden">
-            <form
-              onSubmit={handleSearch}
-              className="flex items-center mb-4 space-x-2"
-            >
-              <div className="relative flex-1">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Search className="w-4 h-4 text-gray-400" />
-                </div>
-                <Input
-                  type="search"
-                  placeholder="Search for products..."
-                  className="w-full pl-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <Button type="submit" size="sm">
-                Search
-              </Button>
-            </form>
-            <div className="flex flex-col space-y-3">
-              {isAuthenticated ? (
-                <>
-                  <div className="px-4 py-2 text-sm font-medium text-gray-700">
-                    Hello, {user?.name}
-                  </div>
-                  <Link
-                    to="/profile"
-                    className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Profile
-                  </Link>
-                  <Link
-                    to="/orders"
-                    className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    My Orders
-                  </Link>
-                  {hasRole([UserRole.STORE_OWNER]) && (
-                    <Link
-                      to="/storefront"
-                      className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      My Store
-                    </Link>
-                  )}
-                  {hasRole([UserRole.HOTEL_MANAGER]) && (
-                    <Link
-                      to="/hotel-dashboard"
-                      className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Hotel Dashboard
-                    </Link>
-                  )}
-                  {hasRole([UserRole.DELIVERY_AGENT]) && (
-                    <Link
-                      to="/deliveries"
-                      className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Deliveries
-                    </Link>
-                  )}
-                  <button
-                    onClick={() => {
-                      logout();
-                      setMobileMenuOpen(false);
-                      navigate("/");
-                    }}
-                    className="px-4 py-2 text-sm text-left text-red-600 hover:bg-gray-100"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <Link
-                  to="/login"
-                  className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Login
-                </Link>
-              )}
-            </div>
-          </div>
-        )}
+
       </div>
     </header>
   );

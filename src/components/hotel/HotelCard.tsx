@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Star, Clock, MapPin } from "lucide-react";
 
 interface Hotel {
-  id: string;
+  id?: string;
+  _id?: string;
   name: string;
   image: string;
   rating?: number;
@@ -74,11 +75,23 @@ const HotelCard = ({ hotel }: HotelCardProps) => {
           </div>
         </div>
         
-        <Button asChild className="w-full">
-          <Link to={`/hotel-menu/${hotel.id}`}>
-            View Menu
-          </Link>
-        </Button>
+        {(() => {
+          const hotelId = hotel.id || hotel._id;
+          if (!hotelId) {
+            console.warn('HotelCard: No id for hotel', hotel);
+            return (
+              <Button disabled className="w-full">No Menu</Button>
+            );
+          }
+          return (
+            <Button asChild className="w-full">
+              <Link to={`/hotel-menu/${hotelId}`}>
+                View Menu
+              </Link>
+            </Button>
+          );
+        })()}
+
       </div>
     </div>
   );
