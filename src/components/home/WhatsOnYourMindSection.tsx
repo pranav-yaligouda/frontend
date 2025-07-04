@@ -1,5 +1,16 @@
 import { DISH_CATEGORIES, MEAL_TYPE_IMAGES } from "@/constants/dishCategorization";
 
+// Map for meal type images (customize as needed)
+// const MEAL_TYPE_IMAGES: Record<string, string> = {
+//   Breakfast: "/images/categories/dosa.jpg",
+//   "Lunch / Dinner / Main Course": "/images/categories/north_indian_thali.jpg",
+//   "Snacks & Appetizers": "/images/categories/burger.jpg",
+//   "Indo-Chinese Specials": "/images/categories/noodles.jpg",
+//   "Breads & Accompaniments": "/images/categories/breads_rice.jpg",
+//   Desserts: "/images/categories/dessert.jpg",
+//   Beverages: "/images/categories/beverage.jpg",
+// };
+
 import React, { useState, useMemo, useEffect } from "react";
 import type { Dish } from "@/types/Dish";
 import { Link } from "react-router-dom";
@@ -147,37 +158,7 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
                     <span>•</span>
                     <span>1.3 km</span>
                   </div>
-                  {/* Badges row */}
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {/* Veg/Non-Veg Badge - top right */}
-                    <div className="absolute top-1 right-1 z-10">
-                      {dish.dietaryTags?.includes('Non-Vegetarian') ? (
-                        <div className="relative group">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 shadow border border-red-200">
-                            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10"/></svg>
-                            Non-Veg
-                          </span>
-                          <span className="absolute hidden group-hover:block bg-black text-white text-xs rounded px-2 py-1 left-1/2 -translate-x-1/2 mt-1 whitespace-nowrap">Non-Vegetarian</span>
-                        </div>
-                      ) : dish.dietaryTags?.includes('Vegetarian') ? (
-                        <div className="relative group">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 shadow border border-green-200">
-                            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10"/></svg>
-                            Veg
-                          </span>
-                          <span className="absolute hidden group-hover:block bg-black text-white text-xs rounded px-2 py-1 left-1/2 -translate-x-1/2 mt-1 whitespace-nowrap">Vegetarian</span>
-                        </div>
-                      ) : (typeof dish.veg === 'boolean' ? (
-                        <div className="relative group">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold shadow border ${dish.veg ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}> 
-                            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10"/></svg>
-                            {dish.veg ? 'Veg' : 'Non-Veg'}
-                          </span>
-                          <span className="absolute hidden group-hover:block bg-black text-white text-xs rounded px-2 py-1 left-1/2 -translate-x-1/2 mt-1 whitespace-nowrap">{dish.veg ? 'Vegetarian' : 'Non-Vegetarian'}</span>
-                        </div>
-                      ) : null)}
-                    </div>
-                  </div>
+                  {/* Badges row removed: Veg/Non-Veg tag no longer shown */}
                   {/* Add to Cart Button */}
                   {onAddToCart && (
                     <button

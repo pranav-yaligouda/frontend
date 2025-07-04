@@ -27,6 +27,19 @@ const MobileFooterNav = () => {
     dashboardRoute = "/deliveries";
   }
 
+  if (!user) {
+    return (
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-lg flex justify-around items-center py-2 md:hidden">
+        <button
+          className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none"
+          onClick={() => navigate("/login")}
+        >
+          <User className="w-6 h-6 mb-0.5" />
+          <span>Login/Register</span>
+        </button>
+      </nav>
+    );
+  }
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-lg flex justify-around items-center py-2 md:hidden">
       <button
