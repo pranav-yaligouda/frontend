@@ -51,14 +51,23 @@ const Index = () => {
         }));
         setHotels(normalizedHotels);
         // Flatten all hotel dishes into a single array, attaching hotel info
+        const staticBase = import.meta.env.VITE_STATIC_URL || 'http://localhost:4000';
         const normalized: Dish[] = [];
         for (const hotel of hotelsData) {
           for (const hotelDish of hotel.dishes || []) {
+            let imageUrl = hotelDish.image;
+            if (imageUrl && !/^https?:\/\//.test(imageUrl)) {
+              imageUrl = `${staticBase}/uploads/${imageUrl}`;
+            }
+            if (!imageUrl) {
+              imageUrl = "/images/dishes/default.jpg";
+            }
             normalized.push({
               ...hotelDish,
               hotelName: hotel.name,
               hotelId: hotel._id || hotel.id,
               id: hotelDish._id || hotelDish.id, // ensure unique id per dish
+              image: imageUrl,
             });
           }
         }
