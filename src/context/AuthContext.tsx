@@ -47,8 +47,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Check for saved user on initial load
   useEffect(() => {
     const savedUser = localStorage.getItem('athani_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    try {
+      // Only parse if not undefined/null and is valid JSON
+      if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
+        setUser(JSON.parse(savedUser));
+      }
+    } catch (err) {
+      // If corrupted, clear it out
+      localStorage.removeItem('athani_user');
+      setUser(null);
     }
     setIsLoading(false);
   }, []);
@@ -58,11 +65,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       const data = await authApi.login({ phone, password });
-      setUser(data.user);
-      localStorage.setItem('athani_user', JSON.stringify(data.user));
-      localStorage.setItem('athani_token', data.token);
+      // Only set user/token if both are valid
+      if (data?.user && data?.token) {
+        setUser(data.user);
+        localStorage.setItem('athani_user', JSON.stringify(data.user));
+        localStorage.setItem('athani_token', data.token);
+      } else {
+        // Defensive: clear localStorage and throw error if login response is invalid
+        localStorage.removeItem('athani_user');
+        localStorage.removeItem('athani_token');
+        throw new Error('Invalid login response: user or token missing');
+      }
     } catch (error) {
       console.error('Login failed:', error);
+      // Defensive: clear localStorage on error
+      localStorage.removeItem('athani_user');
+      localStorage.removeItem('athani_token');
       throw error;
     } finally {
       setIsLoading(false);
@@ -99,6 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setUser(null);
     localStorage.removeItem('athani_user');
+    localStorage.removeItem('athani_token');
   };
 
   // Check if user has specific role

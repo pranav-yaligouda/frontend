@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import LocationInput from "@/components/ui/locationInput";
 import { toast } from "sonner";
 import { createOrder, Product, products } from "@/data/models";
-import OrderProcessingService from "@/services/OrderProcessingService";
+import { OrderProcessingService } from "@/services/OrderProcessingService";
 
 const Cart = () => {
   const { items, removeItem, updateQuantity, clearCart, getTotal, getStores } = useCart();
@@ -74,61 +74,20 @@ const Cart = () => {
         storeName: item.storeName,
       }));
 
-      // If we have customer location, try to allocate from nearby stores
-      // Otherwise use the cart's current store allocations
-      let finalOrderItems = orderItems;
-      
-      if (customerLocation) {
-        try {
-          // Try to allocate from optimal stores
-          const cartItems = items.map(item => ({
-            productId: item.productId, 
-            quantity: item.quantity
-          }));
-          
-          const allocations = await OrderProcessingService.allocateOrderItems(
-            customerLocation,
-            cartItems
-          );
-          
-          // Format allocated items for order
-          finalOrderItems = [];
-          for (const store of allocations) {
-            for (const item of store.items) {
-              const cartItem = items.find(i => i.productId === item.productId);
-              if (cartItem) {
-                finalOrderItems.push({
-                  productId: item.productId,
-                  name: cartItem.name,
-                  price: cartItem.price,
-                  quantity: item.quantity,
-                  storeId: store.storeId,
-                  storeName: store.storeName,
-                });
-              }
-            }
-          }
-        } catch (error) {
-          console.error("Failed to allocate from optimal stores:", error);
-          // Fall back to cart's current allocations
-        }
-      }
-
-      // Process the order with our service
-      const result = await OrderProcessingService.processOrder({
-        customerId: user?.id || "",
-        items: finalOrderItems,
+      // Place order via backend, regardless of stock
+      const orderPayload = {
+        items: orderItems,
         total: getTotal(),
         deliveryAddress: address,
         deliveryInstructions: instructions,
-        customerLocation: customerLocation || undefined
-      });
-      
-      // Clear cart and redirect
+        customerId: user?.id,
+      };
+      await OrderProcessingService.processOrder(orderPayload);
       clearCart();
       toast.success("Order placed successfully!");
       navigate("/orders");
     } catch (error) {
+      // Never block order placement due to stock
       console.error("Failed to place order:", error);
       toast.error("Failed to place order. Please try again.");
     } finally {

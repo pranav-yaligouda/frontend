@@ -1,17 +1,11 @@
+import API from './api';
+import type { Order } from '../types/Order';
 
-import { 
-  Order, 
-  Product, 
-  Store, 
-  StoreProduct, 
-  createOrder, 
-  updateOrderStatus, 
-  getStoreProductsByStore,
-  getStoreById,
-  orders,
-  products,
-  stores
-} from "@/data/models";
+import io from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
+
+const API_BASE = '/api/v1/';
+let socket: ReturnType<typeof io> | null = null;
 
 /**
  * Service to handle order processing, including store allocation
@@ -24,181 +18,14 @@ export class OrderProcessingService {
    * @param items Items in the cart
    * @returns Allocated items by store
    */
-  static async allocateOrderItems(
-    customerLocation: { lat: number; lng: number },
-    items: { productId: string; quantity: number }[]
-  ) {
-    try {
-      // In a real backend implementation, this would query the database
-      // for all stores with available inventory and calculate distances
-      
-      // For each product, find stores that have enough stock
-      const allocations = await Promise.all(
-        items.map(async (item) => {
-          // Get product details directly from products array instead of using getProductById
-          const product = products.find(p => p.id === item.productId);
-          if (!product) {
-            throw new Error(`Product not found: ${item.productId}`);
-          }
-          
-          // Get all stores that carry this product with enough stock
-          const availableStores = await this.findAvailableStores(item.productId, item.quantity);
-          
-          // Sort stores by proximity to customer
-          const sortedStores = this.sortStoresByProximity(availableStores, customerLocation);
-          
-          if (sortedStores.length === 0) {
-            throw new Error(`Not enough stock available for: ${product.name}`);
-          }
-          
-          // Allocate to nearest store
-          return {
-            productId: item.productId,
-            quantity: item.quantity,
-            storeId: sortedStores[0].storeId,
-            storeName: sortedStores[0].storeName
-          };
-        })
-      );
-      
-      // Group allocations by store
-      const storeAllocations = this.groupAllocationsByStore(allocations);
-      
-      return storeAllocations;
-    } catch (error) {
-      console.error("Error allocating order items:", error);
-      throw error;
-    }
-  }
-  
-  /**
-   * Find stores that have enough stock for a product
-   */
-  private static async findAvailableStores(productId: string, quantity: number) {
-    // In a real implementation, this would be a database query
-    // SELECT sp.storeId, s.name, sp.stockQuantity 
-    // FROM StoreProducts sp 
-    // JOIN Stores s ON sp.storeId = s.id
-    // WHERE sp.productId = ? AND sp.stockQuantity >= ?
-    
-    // Mock implementation
-    const availableStores: Array<{
-      storeId: string;
-      storeName: string;
-      stockQuantity: number;
-    }> = [];
-    
-    // Get all stores
-    const stores = [
-      { id: 'store1', name: 'Fresh Greens Market' },
-      { id: 'store2', name: 'Athani General Store' },
-    ];
-    
-    for (const store of stores) {
-      const storeProducts = await getStoreProductsByStore(store.id);
-      const productInStore = storeProducts.find(sp => sp.productId === productId);
-      
-      if (productInStore && productInStore.stockQuantity >= quantity) {
-        availableStores.push({
-          storeId: store.id,
-          storeName: store.name,
-          stockQuantity: productInStore.stockQuantity
-        });
-      }
-    }
-    
-    return availableStores;
-  }
-  
-  /**
-   * Sort stores by proximity to customer
-   */
-  private static sortStoresByProximity(
-    stores: Array<{ storeId: string; storeName: string }>,
-    customerLocation: { lat: number; lng: number }
-  ) {
-    // In a real implementation, this would calculate actual distances
-    // using Google Maps Distance Matrix API or similar
-    
-    // Mock implementation - just return stores in original order
-    return stores;
-  }
-  
-  /**
-   * Group allocations by store for order processing
-   */
-  private static groupAllocationsByStore(allocations: Array<{
-    productId: string;
-    quantity: number;
-    storeId: string;
-    storeName: string;
-  }>) {
-    const storeMap = new Map<string, {
-      storeId: string;
-      storeName: string;
-      items: Array<{ productId: string; quantity: number }>;
-    }>();
-    
-    for (const allocation of allocations) {
-      if (!storeMap.has(allocation.storeId)) {
-        storeMap.set(allocation.storeId, {
-          storeId: allocation.storeId,
-          storeName: allocation.storeName,
-          items: []
-        });
-      }
-      
-      storeMap.get(allocation.storeId)?.items.push({
-        productId: allocation.productId,
-        quantity: allocation.quantity
-      });
-    }
-    
-    return Array.from(storeMap.values());
-  }
-  
+  // All allocation and stock validation is now handled by the backend API.
+
+
   /**
    * Calculate the optimized route for an order delivery
    */
-  static async calculateDeliveryRoute(order: Order) {
-    // Group items by store
-    const storeItems = new Map<string, Array<string>>();
-    
-    for (const item of order.items) {
-      if (!storeItems.has(item.storeId)) {
-        storeItems.set(item.storeId, []);
-      }
-      storeItems.get(item.storeId)?.push(item.productId);
-    }
-    
-    // Create store pickup points
-    const storePickups = [];
-    for (const [storeId, items] of storeItems.entries()) {
-      // Get store details directly from stores array
-      const store = stores.find(s => s.id === storeId);
-      if (store) {
-        storePickups.push({
-          storeId,
-          storeName: store.name,
-          location: store.location,
-          items
-        });
-      }
-    }
-    
-    // Create optimized route
-    // In a real implementation, this would use a routing algorithm
-    // to determine the optimal order of stores to visit
-    
-    return {
-      storePickups,
-      customerDropoff: {
-        location: { lat: 16.7200, lng: 75.0700 }, // In a real app, this would be the customer's address geocoded
-        address: order.deliveryAddress
-      }
-    };
-  }
-  
+  // Delivery route calculation must be performed by the backend. If needed, call an API endpoint for route calculation.
+
   /**
    * Generate a verification PIN for order pickup
    * @returns 6-digit PIN
@@ -235,67 +62,24 @@ export class OrderProcessingService {
   /**
    * Process a new order
    * 1. Validate stock availability
-   * 2. Allocate items to stores
+   * 2. Allocate items to 
    * 3. Create order
    * 4. Calculate delivery route
    * 5. Update order with route
    */
-  static async processOrder(orderData: {
-    customerId: string;
-    items: Array<{
-      productId: string;
-      name: string;
-      price: number;
-      quantity: number;
-      storeId: string;
-      storeName: string;
-    }>;
-    total: number;
-    deliveryAddress: string;
-    deliveryInstructions?: string;
-    customerLocation?: { lat: number; lng: number };
-  }) {
+  static async processOrder(orderData: any) {
     try {
-      // Generate verification PINs for each store in this order
-      const storeIds = [...new Set(orderData.items.map(item => item.storeId))];
-      const storePins = storeIds.reduce((acc, storeId) => {
-        acc[storeId] = this.generateVerificationPin();
-        return acc;
-      }, {} as Record<string, string>);
-      
-      // Create the order with verification PIN
-      const orderId = await createOrder({
-        customerId: orderData.customerId,
-        items: orderData.items,
-        total: orderData.total,
-        deliveryAddress: orderData.deliveryAddress,
-        deliveryInstructions: orderData.deliveryInstructions,
-        storeIds: storeIds,
-        paymentMethod: "cash",
-        paymentStatus: "pending",
-        verificationPin: Object.values(storePins)[0], // Use first store's PIN as main PIN
-        storePins: storePins
-      });
-      
-      // Get the created order directly from orders array
-      const order = orders.find(o => String(o.id) === String(orderId));
-      
-      if (!order) {
-        throw new Error("Failed to create order");
+      const response = await API.post('/orders', orderData);
+      if (response.data && response.data.success) {
+        return response.data.data;
+      } else {
+        throw new Error(response.data.error || 'Order processing failed');
       }
-      
-      // Calculate delivery route
-      const optimizedRoute = await this.calculateDeliveryRoute(order);
-      
-      // In a real implementation, the order would be updated with the route
-      // and the stores would be notified
-      
-      return {
-        order,
-        optimizedRoute
-      };
-    } catch (error) {
-      console.error("Error processing order:", error);
+    } catch (error: any) {
+      console.error('Error processing order:', error);
+      if (error.response && error.response.data && error.response.data.error) {
+        throw new Error(error.response.data.error);
+      }
       throw error;
     }
   }
@@ -308,38 +92,91 @@ export class OrderProcessingService {
    * @param location Current location of delivery agent
    * @returns Boolean indicating verification success
    */
-  static async verifyOrderPickup(
-    orderId: string, 
-    storeId: string, 
-    pin: string,
-    location: { lat: number; lng: number }
-  ): Promise<boolean> {
-    // Find the order
-    const order = orders.find(o => o.id === orderId);
-    
-    if (!order) {
-      throw new Error("Order not found");
+  static async verifyOrderPickup(orderId: string, storeId: string, pin: string, location: { lat: number; lng: number }): Promise<boolean> {
+    try {
+      const response = await API.post(`/orders/${orderId}/pickup`, { storeId, pin, location });
+      if (response.data && response.data.success) {
+        return response.data.data;
+      } else {
+        throw new Error(response.data.error || 'Order pickup verification failed');
+      }
+    } catch (error: any) {
+      console.error('Error verifying order pickup:', error);
+      if (error.response && error.response.data && error.response.data.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw error;
     }
-    
-    // Check if store is part of this order
-    if (!order.storeIds.includes(storeId)) {
-      throw new Error("Store not part of this order");
+  }
+
+  static async fetchOrdersByRole(role: string, userId: string) {
+    try {
+      const response = await API.get(`/orders?role=${role}&userId=${userId}`);
+      if (response.data && response.data.success) {
+        return response.data.data;
+      } else {
+        throw new Error(response.data.error || 'Failed to fetch orders');
+      }
+    } catch (error: any) {
+      console.error('Error fetching orders:', error);
+      if (error.response && error.response.data && error.response.data.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw error;
     }
-    
-    // Find the store location
-    const store = stores.find(s => s.id === storeId);
-    
-    if (!store) {
-      throw new Error("Store not found");
+  }
+
+  static async fetchAvailableOrdersForAgent() {
+    try {
+      const response = await API.get(`/orders/available/agent`);
+      if (response.data && response.data.success) {
+        return response.data.data;
+      } else {
+        throw new Error(response.data.error || 'Failed to fetch available orders');
+      }
+    } catch (error: any) {
+      console.error('Error fetching available orders:', error);
+      if (error.response && error.response.data && error.response.data.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw error;
     }
-    
-    // Verify PIN
-    const isCorrectPin = order.storePins && order.storePins[storeId] === pin;
-    
-    // Verify location proximity
-    const isNearStore = this.verifyLocationProximity(location, store.location);
-    
-    return isCorrectPin && isNearStore;
+  }
+
+  static subscribeToOrderUpdates(userId: string, businessId?: string, onUpdate?: (order: Order) => void) {
+    if (!socket) {
+      socket = io();
+    }
+    socket.emit('join', userId);
+    if (businessId) socket.emit('join', businessId);
+    if (onUpdate) {
+      socket.on('order:status', onUpdate);
+      socket.on('order:new', onUpdate);
+    }
+  }
+
+  static unsubscribeFromOrderUpdates() {
+    if (socket) {
+      socket.disconnect();
+      socket = null;
+    }
+  }
+
+  static async updateOrderStatus(orderId: string, status: string) {
+    try {
+      const response = await API.patch(`/api/v1/orders/${orderId}/status`, { status });
+      if (response.data && response.data.success) {
+        return response.data.data;
+      } else {
+        throw new Error(response.data.error || 'Failed to update order status');
+      }
+    } catch (error: any) {
+      console.error('Error updating order status:', error);
+      if (error.response && error.response.data && error.response.data.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw error;
+    }
   }
 }
 

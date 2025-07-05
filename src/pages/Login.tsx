@@ -45,17 +45,17 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await login(loginPhone, loginPassword);
+      await login(loginPhone, loginPassword); // Await login for context update
       toast.success("Login successful");
-      navigate("/");
-    } catch (error: any) {
-      console.error("Login error:", error);
-      toast.error(error.message || "Invalid phone number or password");
+      navigate("/"); // Navigate only after context is updated
+    } catch (err: any) {
+      toast.error(err?.message || "Login failed");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // (No change to signup handler, just for context)
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);

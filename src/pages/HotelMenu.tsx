@@ -61,25 +61,30 @@ const HotelMenu = () => {
           setLoading(false);
           return;
         }
-        let dishData = [];
+        let dishData: any[] = [];
         let hotelData = null;
         try {
-          dishData = await getDishesByHotelId(id);
-        } catch (err: any) {
-          if (err.response && err.response.status === 404) {
-            setError("Hotel not found or this hotel has no menu yet.");
+          const dishesRes = await getDishesByHotelId(id);
+          if (dishesRes && dishesRes.success) {
+            dishData = Array.isArray(dishesRes.data) ? dishesRes.data : [];
           } else {
-            setError(err.message || "Failed to load menu");
+            setError(dishesRes?.error || "No dishes found for this hotel");
+            dishData = [];
           }
-          setLoading(false);
-          return;
+        } catch (err: any) {
+          setError(err?.message || "Failed to load menu");
+          dishData = [];
         }
         setDishes(dishData);
         try {
           // Best practice: fetch hotel info by id for full details (including image)
           const { getHotelById } = await import('@/utils/hotelApi');
-          hotelData = await getHotelById(id);
-          setHotel(hotelData);
+          const hotelRes = await getHotelById(id);
+          if (hotelRes && hotelRes.success) {
+            setHotel(hotelRes.data);
+          } else {
+            setError(hotelRes?.error || "Hotel details could not be loaded.");
+          }
         } catch (err) {
           // fallback: use hotel info from first dish if available
           if (dishData.length > 0 && dishData[0].hotel) {

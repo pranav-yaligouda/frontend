@@ -49,15 +49,19 @@ export async function register(payload: RegisterPayload): Promise<AuthResponse> 
   return res.json();
 }
 
-export async function login(payload: LoginPayload): Promise<AuthResponse> {
+export async function login({ phone, password }: { phone: string; password: string }) {
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ phone, password }),
+    credentials: "include",
   });
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(error.message || "Login failed");
+  const json = await res.json();
+  if (!res.ok || !json.success || !json.data?.user || !json.data?.token) {
+    throw new Error(json.error || "Login failed");
   }
-  return res.json();
+  // Always return { user, token }
+  return { user: json.data.user, token: json.data.token };
 }

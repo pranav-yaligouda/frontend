@@ -37,7 +37,14 @@ const Index = () => {
     const fetchAll = async () => {
       setIsLoading(true);
       try {
-        const hotelsData = await getAllHotels();
+        const hotelsResponse = await getAllHotels();
+        let hotelsData: any[] = [];
+        if (hotelsResponse && hotelsResponse.success) {
+          hotelsData = Array.isArray(hotelsResponse.data) ? hotelsResponse.data : [];
+        } else {
+          toast.error(hotelsResponse?.error || 'Failed to fetch hotels');
+          hotelsData = [];
+        }
         const normalizedHotels = hotelsData.map((hotel: Hotel) => ({
           ...hotel,
           id: hotel._id || hotel.id, // Ensure 'id' is always present
