@@ -1,7 +1,10 @@
 // Utility for hotel manager dish APIs
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000/api/v1';
+const API_BASE = import.meta.env.VITE_API_URL;
+if (!API_BASE) {
+  throw new Error('VITE_API_URL environment variable is not set. Please configure it in your .env file.');
+}
 
 // Fetch a single hotel by id (public info)
 export async function getHotelById(hotelId: string) {

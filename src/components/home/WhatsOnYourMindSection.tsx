@@ -124,7 +124,10 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
                 <div className="relative w-full h-44 sm:h-48 bg-athani-50 overflow-hidden">
                   <img
                     src={(() => {
-                      const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api/v1').replace(/\/api\/v1$/, '');
+                      const apiBase = import.meta.env.VITE_API_URL;
+                      if (!apiBase) {
+                        throw new Error('VITE_API_URL environment variable is not set. Please configure it in your .env file.');
+                      }
                       return dish.image && !/^https?:\/.*/.test(dish.image)
                         ? `${apiBase}/uploads/${dish.image}`
                         : dish.image || DEFAULT_DISH_IMAGE;

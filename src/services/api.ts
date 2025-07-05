@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+if (!apiUrl) {
+  throw new Error('VITE_API_URL environment variable is not set. Please configure it in your .env file.');
+}
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api/v1',
+  baseURL: apiUrl,
   withCredentials: true, // If using httpOnly cookies for auth
 });
 
