@@ -5,7 +5,8 @@ import { useCart } from "@/context/CartContext";
 import { useAuth, UserRole } from "@/context/AuthContext";
 import { Trash, Plus, Minus, ChevronLeft, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import LocationInput from "@/components/ui/locationInput";
+import LocationInputWithMap from "@/components/ui/LocationInputWithMap";
+// import LocationInput from "@/components/ui/locationInput"; // replaced with Google Maps version
 import { toast } from "sonner";
 import { createOrder, Product, products } from "@/data/models";
 import { OrderProcessingService } from "@/services/OrderProcessingService";
@@ -15,7 +16,14 @@ const Cart = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const [address, setAddress] = useState("");
+  // Address object state
+const [address, setAddress] = useState({
+  addressLine: '',
+  city: '',
+  state: '',
+  pincode: '',
+  coordinates: null as { lat: number; lng: number } | null,
+});
   const [instructions, setInstructions] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [customerLocation, setCustomerLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -57,56 +65,128 @@ const Cart = () => {
       return;
     }
 
-    if (!address) {
-      toast.error("Please enter a delivery address");
+    // Validate address fields
+    if (!address.addressLine || !address.city || !address.state || !address.pincode) {
+      toast.error("Please enter a complete delivery address");
       return;
     }
 
     setIsProcessing(true);
     try {
-      // Prepare order items data
-      const orderItems = items.map((item) => ({
-        productId: item.productId,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        storeId: item.storeId,
-        storeName: item.storeName,
-      }));
+      // Place an order for each store
+      for (const store of getStores()) {
+        const storeProducts = items.filter((item) => item.storeId === store.storeId);
+        if (storeProducts.length === 0) continue;
 
-      // Place order via backend, regardless of stock
-      const orderPayload = {
-        items: orderItems,
-        total: getTotal(),
-        deliveryAddress: address,
-        deliveryInstructions: instructions,
-        customerId: user?.id,
-      };
-      await OrderProcessingService.processOrder(orderPayload);
-      clearCart();
-      toast.success("Order placed successfully!");
-      navigate("/orders");
-    } catch (error) {
-      // Never block order placement due to stock
-      console.error("Failed to place order:", error);
-      toast.error("Failed to place order. Please try again.");
-    } finally {
-      setIsProcessing(false);
+        // Get store details (in a real app, this would come from your API)
+        const storeDetails = {
+          addressLine: store.storeName + ', Main Road',
+          city: 'Athani',
+          state: 'KA',
+          pincode: '591304',
+          coordinates: { lat: 0, lng: 0 }, // Default coordinates
+          businessType: 'store', // or 'hotel' as needed
+        };
+
+        // Prepare order items with required fields
+        const orderItems = storeProducts.map((item) => ({
+          type: 'product', // or 'dish' based on your product type
+          itemId: item.productId, // Ensure this matches your backend's expected field name
+          productId: item.productId, // Include both if needed
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          storeId: item.storeId,
+          storeName: item.storeName,
+        }));
+
+        // Validate items before proceeding
+        const invalidItems = orderItems.filter(item => !item.itemId || !item.type);
+        if (invalidItems.length > 0) {
+          console.error('Invalid items:', invalidItems);
+          throw new Error('Some items are missing required fields');
+        }
+
+        // Build complete order payload
+        const orderPayload = {
+          businessType: storeDetails.businessType,
+          businessId: store.storeId,
+          customerId: user?.id,
+          items: orderItems,
+          deliveryAddress: {
+            addressLine: address.addressLine,
+            city: address.city,
+            state: address.state,
+            pincode: address.pincode,
+            coordinates: address.coordinates || { lat: 0, lng: 0 },
+          },
+          pickupAddress: {
+            addressLine: storeDetails.addressLine,
+            city: storeDetails.city,
+            state: storeDetails.state,
+            pincode: storeDetails.pincode,
+            coordinates: storeDetails.coordinates,
+          },
+          notes: instructions,
+          status: 'pending', // Initial status
+          total: storeProducts.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+        };
+
+        console.log('Sending order payload:', JSON.stringify(orderPayload, null, 2));
+
+        // Final validation
+        if (!orderPayload.businessId || !orderPayload.businessType || 
+            !orderPayload.customerId || orderPayload.items.length === 0) {
+          throw new Error('Order validation failed: Missing required fields');
+        }
+
+      try {
+        const response = await OrderProcessingService.processOrder(orderPayload);
+        console.log('Order response:', response);
+      } catch (error: any) {
+        console.error('Order processing error:', error);
+        // Extract backend validation errors if available
+        const errorMessage = error.response?.data?.message || 
+                           error.response?.data?.error || 
+                           error.message || 
+                           'Failed to place order';
+        
+        // If there are validation errors, show them in detail
+        if (error.response?.data?.errors) {
+          const validationErrors = Object.values(error.response.data.errors)
+            .map((err: any) => `• ${err.message || err}`)
+            .join('\n');
+          toast.error(`Validation errors:\n${validationErrors}`, {
+            duration: 10000, // Show for 10 seconds
+          });
+        } else {
+          toast.error(errorMessage);
+        }
+        throw error; // Re-throw to be caught by outer try-catch
+      }
     }
-  };
+    
+    // Only clear cart and redirect if all orders succeeded
+    clearCart();
+    toast.success("Order(s) placed successfully!");
+    navigate("/orders");
+  } catch (error: any) {
+    console.error("Order placement failed:", error);
+    // Don't show duplicate error if already shown in inner catch
+    if (!error.handled) {
+      toast.error(error.message || "Failed to place order. Please check your details and try again.");
+    }
+  } finally {
+    setIsProcessing(false);
+  }
+};
 
   // Handle address change and attempt to get coordinates
-  const handleAddressChange = (newAddress: string) => {
-    setAddress(newAddress);
-    
-    // In a real app, this would use geocoding to get coordinates
-    // For now, set a mock location
-    if (newAddress) {
-      setCustomerLocation({ lat: 16.7200, lng: 75.0700 });
-    } else {
-      setCustomerLocation(null);
-    }
-  };
+  // Accepts an address object
+const handleAddressChange = (newAddressObj: typeof address) => {
+  setAddress(newAddressObj);
+  setCustomerLocation(newAddressObj.coordinates || null);
+};
 
   if (items.length === 0) {
     return (
@@ -243,11 +323,10 @@ const Cart = () => {
                   <label className="text-sm font-medium text-gray-700">
                     Delivery Address
                   </label>
-                  <LocationInput
-                    value={address}
-                    onChange={handleAddressChange}
-                    placeholder="Enter your delivery address"
-                  />
+                  <LocationInputWithMap
+  value={address}
+  onChange={handleAddressChange}
+/>
                 </div>
 
                 <div className="space-y-2">
