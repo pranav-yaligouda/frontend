@@ -27,8 +27,12 @@ const Cart = () => {
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('cod');
 
 
+  // Filter out invalid cart items (missing id or storeId)
+  const invalidCartItems = items.filter(item => !item.id || !item.storeId);
+  const validItems = items.filter(item => item.id && item.storeId);
+
   const storeItems = getStores().map((store) => {
-    const storeProducts = items.filter((item) => item.storeId === store.storeId);
+    const storeProducts = validItems.filter((item) => item.storeId === store.storeId);
     const storeTotal = storeProducts.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
@@ -53,6 +57,10 @@ const Cart = () => {
   };
 
   const handleCheckout = async () => {
+    if (invalidCartItems.length > 0) {
+      toast.error('Cart contains invalid items. Please remove them before proceeding.');
+      return;
+    }
     if (!isAuthenticated) {
       toast.error("Please login to checkout");
       navigate("/login");

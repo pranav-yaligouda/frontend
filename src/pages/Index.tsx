@@ -84,11 +84,20 @@ const Index = () => {
             if (!imageUrl) {
               imageUrl = "/images/dishes/default.jpg";
             }
+            // Robust normalization: always set id from _id and hotelId from hotel._id or fallback to dish.hotel
+            const dishId = hotelDish._id || hotelDish.id;
+            const hotelId = hotel._id || hotel.id || hotelDish.hotel;
+            if (!dishId || !hotelId) {
+              if (typeof window !== 'undefined' && window.console) {
+                window.console.warn('Skipping dish with missing _id or hotelId:', { hotelDish, hotel });
+              }
+              continue;
+            }
             normalized.push({
               ...hotelDish,
               hotelName: hotel.name,
-              hotelId: hotel._id || hotel.id,
-              id: hotelDish._id || hotelDish.id, // ensure unique id per dish
+              hotelId: hotelId,
+              id: dishId,
               image: imageUrl,
             });
           }
@@ -116,6 +125,12 @@ const Index = () => {
   }, []);
 
   const handleAddDishToCart = (dish: Dish) => {
+    // Defensive: Only allow if both dish.id and dish.hotelId are valid
+    if (!dish.id || !dish.hotelId || dish.id === 'undefined' || dish.hotelId === 'undefined') {
+      toast.error('Cannot add to cart: Invalid dish or hotel ID. Please refresh or contact support.');
+      console.error('Add to cart failed: missing dish.id or dish.hotelId', dish);
+      return;
+    }
     addItem({
       id: `${dish.hotelId}_${dish.id}`,
       productId: dish.id,

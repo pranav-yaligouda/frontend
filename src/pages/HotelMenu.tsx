@@ -76,7 +76,22 @@ const HotelMenu = () => {
           setError(err?.message || "Failed to load menu");
           dishData = [];
         }
-        setDishes(dishData);
+        // Normalize: ensure each dish has id mapped from _id if missing
+const normalizedDishes = dishData
+  .filter((dish: any) => {
+    if (!dish._id) {
+      if (typeof window !== 'undefined' && window.console) {
+        console.warn('Skipping dish with missing _id:', dish);
+      }
+      return false;
+    }
+    return true;
+  })
+  .map((dish: any) => ({
+    ...dish,
+    id: dish._id,
+  }));
+setDishes(normalizedDishes);
         try {
           // Best practice: fetch hotel info by id for full details (including image)
           const { getHotelById } = await import('@/utils/hotelApi');
@@ -145,21 +160,29 @@ const HotelMenu = () => {
   };
 
   const handleAddToCart = (dish: any) => {
-    const quantity = quantities[dish.id] || 1;
+    // Use only backend _id for both hotel and dish
+    const dishId = dish._id;
+    const hotelId = hotel?._id;
+    if (!dishId || !hotelId) {
+      toast.error('Cannot add to cart: Invalid dish or hotel ID. Please refresh or contact support.');
+      console.error('Add to cart failed: missing dish._id or hotel._id', { dish, hotel });
+      return;
+    }
+    const quantity = quantities[dishId] || 1;
     for (let i = 0; i < quantity; i++) {
       addItem({
-        id: `${hotel?.id}_${dish.id}`,
-        productId: dish.id,
+        id: `${hotelId}_${dishId}`,
+        productId: dishId,
         name: dish.name,
         price: dish.price,
         image: dish.image || DEFAULT_DISH_IMAGE,
-        storeId: hotel?.id,
+        storeId: hotelId,
         storeName: hotel?.name,
         type: 'dish',
       });
     }
     toast.success(`${dish.name} added to cart!`);
-    setQuantities(prev => ({ ...prev, [dish.id]: 1 }));
+    setQuantities(prev => ({ ...prev, [dishId]: 1 }));
   };
 
   if (loading) {

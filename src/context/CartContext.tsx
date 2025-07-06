@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
 // Cart item interface
 export interface CartItem {
@@ -47,22 +48,31 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Add item to cart
   const addItem = (item: Omit<CartItem, 'quantity'>) => {
-  setItems(prevItems => {
-    // Fallback for legacy items (before 'type' was added)
-    const normalizedItem = {
-      ...item,
-      type: item.type || (item.storeId && item.productId ? 'product' : 'dish')
-    };
-    const existingItem = prevItems.find(i => i.id === normalizedItem.id);
-    if (existingItem) {
-      return prevItems.map(i =>
-        i.id === normalizedItem.id ? { ...i, quantity: i.quantity + 1 } : i
-      );
-    } else {
-      return [...prevItems, { ...normalizedItem, quantity: 1 }];
+    // Validate critical fields before adding
+    if (!item.id || !item.productId || !item.storeId || item.id === 'undefined_undefined') {
+      if (typeof window !== 'undefined' && window.console) {
+        window.console.error('Attempted to add invalid cart item:', item);
+      }
+      toast.error('Cannot add item to cart: Missing or invalid product/store ID.');
+      return;
     }
-  });
-};
+    setItems(prevItems => {
+      // Fallback for legacy items (before 'type' was added)
+      const normalizedItem = {
+        ...item,
+        type: item.type || (item.storeId && item.productId ? 'product' : 'dish')
+      };
+      const existingItem = prevItems.find(i => i.id === normalizedItem.id);
+      if (existingItem) {
+        return prevItems.map(i =>
+          i.id === normalizedItem.id ? { ...i, quantity: i.quantity + 1 } : i
+        );
+      } else {
+        return [...prevItems, { ...normalizedItem, quantity: 1 }];
+      }
+    });
+  };
+
 
   // Remove item from cart
   const removeItem = (id: string) => {

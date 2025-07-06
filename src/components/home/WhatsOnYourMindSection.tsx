@@ -61,7 +61,23 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
         params.limit = 12;
         const res = await getAllDishes(params);
         const items = res?.data?.items || [];
-        if (isMounted) setFilteredDishes(items);
+        // Normalize dishes to always have id = _id and hotelId = hotel
+        const normalizedItems = items.map((dish: any) => {
+          const id = dish._id || dish.id;
+          const hotelId = dish.hotel;
+          if (!id || !hotelId) {
+            if (typeof window !== 'undefined' && window.console) {
+              window.console.warn('Skipping dish with missing _id or hotel:', dish);
+            }
+            return null;
+          }
+          return {
+            ...dish,
+            id,
+            hotelId,
+          };
+        }).filter(Boolean);
+        if (isMounted) setFilteredDishes(normalizedItems);
       } catch (err) {
         if (isMounted) setFilteredDishes([]);
       }

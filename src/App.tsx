@@ -24,6 +24,7 @@ import HotelMenu from "./pages/HotelMenu";
 import Deliveries from "./pages/Deliveries";
 import Search from "./pages/Search";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ const App = () => (
                   <Route path="/storefront" element={<StoreFront />} />
                   <Route path="/hotel-dashboard" element={<HotelDashboard />} />
                   <Route path="/deliveries" element={<Deliveries />} />
+                  <Route path="/profile" element={<Profile />} />
                   <Route path="/search" element={<Search />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

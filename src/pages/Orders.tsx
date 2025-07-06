@@ -37,8 +37,19 @@ const Orders = () => {
       : OrderProcessingService.fetchOrdersByRole(params);
     fetchOrders
       .then((res) => {
-        setOrders(res.data);
-        setTotalPages(res.totalPages || 1);
+        let ordersArr: any[] = [];
+        if (Array.isArray(res.data)) {
+          ordersArr = res.data;
+        } else if (res.data && Array.isArray(res.data.items)) {
+          ordersArr = res.data.items;
+          setTotalPages(res.data.totalPages || 1);
+          // Optionally set pageSize, totalItems, etc. here if needed
+        } else {
+          console.warn('Orders API did not return an array or items array. Got:', res.data);
+        }
+        setOrders(ordersArr);
+        // If totalPages wasn't set above, fallback to res.totalPages
+        if (!res.data?.totalPages && res.totalPages) setTotalPages(res.totalPages);
       })
       .catch((err) => setError("Failed to fetch orders"))
       .finally(() => setIsLoading(false));
