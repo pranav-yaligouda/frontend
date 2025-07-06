@@ -15,7 +15,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import type { Dish } from "@/types/Dish";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { getStandardDishes } from "@/utils/hotelApi";
+
 
 interface WhatsOnYourMindSectionProps {
   onCategorySelect?: (catKey: string) => void;
@@ -44,15 +44,36 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
     return selectedMealType ? Object.keys(DISH_CATEGORIES[selectedMealType] || {}) : [];
   }, [selectedMealType]);
 
-  // Filter dishes by new categorization
-  const filteredDishes = useMemo(() => {
-    const filtered = dishes.filter((dish) => {
-      if (selectedMealType && dish.mealType !== selectedMealType) return false;
-      if (selectedSubCategory && dish.category !== selectedSubCategory) return false;
-      return true;
-    });
-    return filtered;
-  }, [dishes, selectedMealType, selectedSubCategory]);
+    // Filter dishes by new categorization (async handling)
+  const [filteredDishes, setFilteredDishes] = useState<Dish[]>([]);
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchAndFilterDishes() {
+      try {
+        setFilteredDishes([]);
+        if (!selectedMealType) return;
+        // Import getAllDishes directly
+        const { getAllDishes } = await import('@/utils/hotelApi');
+        const params: any = { mealType: selectedMealType };
+        if (selectedSubCategory) params.category = selectedSubCategory;
+        // Optionally add pagination (e.g., page: 1, limit: 12)
+        params.page = 1;
+        params.limit = 12;
+        const res = await getAllDishes(params);
+        const items = res?.data?.items || [];
+        if (isMounted) setFilteredDishes(items);
+      } catch (err) {
+        if (isMounted) setFilteredDishes([]);
+      }
+    }
+    if (selectedMealType) {
+      fetchAndFilterDishes();
+    } else {
+      setFilteredDishes([]);
+    }
+    return () => { isMounted = false; };
+  }, [selectedMealType, selectedSubCategory]);
+
 
   return (
     <section className="py-4 bg-white">
@@ -124,13 +145,13 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
                 <div className="relative w-full h-44 sm:h-48 bg-athani-50 overflow-hidden">
                   <img
                     src={(() => {
-                      const apiBase = import.meta.env.VITE_API_URL;
-                      if (!apiBase) {
-                        throw new Error('VITE_API_URL environment variable is not set. Please configure it in your .env file.');
-                      }
-                      return dish.image && !/^https?:\/.*/.test(dish.image)
-                        ? `${apiBase}/uploads/${dish.image}`
-                        : dish.image || DEFAULT_DISH_IMAGE;
+                       const staticBase = import.meta.env.VITE_STATIC_URL;
+                       if (!staticBase) {
+                         throw new Error('VITE_STATIC_URL environment variable is not set. Please configure it in your .env file.');
+                       }
+                       return dish.image && !/^https?:\/\/.*/.test(dish.image)
+                         ? `${staticBase}/uploads/${dish.image}`
+                         : dish.image || DEFAULT_DISH_IMAGE;
                     })()}
                     alt={dish.name}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"

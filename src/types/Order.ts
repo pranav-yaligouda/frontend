@@ -1,24 +1,42 @@
 export interface OrderItem {
-  productId: string;
+  type: 'dish' | 'product';
+  itemId: string;
   name: string;
   price: number;
   quantity: number;
-  storeId: string;
-  storeName: string;
+}
+
+export type OrderStatus =
+  | 'PLACED'
+  | 'ACCEPTED_BY_VENDOR'
+  | 'PREPARING'
+  | 'READY_FOR_PICKUP'
+  | 'ACCEPTED_BY_AGENT'
+  | 'PICKED_UP'
+  | 'DELIVERED'
+  | 'CANCELLED'
+  | 'REJECTED';
+
+export interface Address {
+  addressLine: string;
+  coordinates: { lat: number; lng: number };
 }
 
 export interface Order {
   id: string;
-  customerId: string;
+  businessType: 'hotel' | 'store';
+  businessId: string;
   items: OrderItem[];
-  total: number;
-  deliveryAddress: string;
-  deliveryInstructions?: string;
-  customerLocation?: { lat: number; lng: number };
-  status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'out_for_delivery' | 'delivered' | 'cancelled';
+  customerId: string;
+  deliveryAgentId?: string;
+  status: OrderStatus;
+  deliveryAddress: Address;
+  pickupAddress: Address;
+  paymentMethod: 'cod' | 'online';
+  notes?: string;
   createdAt: string;
   updatedAt: string;
+  total: number;
   storeIds?: string[];
-  verificationPin?: string;
-  storePins?: Record<string, string>;
+  paymentStatus?: string;
 }

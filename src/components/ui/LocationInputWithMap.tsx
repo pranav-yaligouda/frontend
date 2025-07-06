@@ -6,9 +6,6 @@ const defaultCenter = { lat: 12.9716, lng: 77.5946 }; // Default to Bangalore
 
 interface Address {
   addressLine: string;
-  city: string;
-  state: string;
-  pincode: string;
   coordinates: { lat: number; lng: number } | null;
 }
 
@@ -27,12 +24,8 @@ const getAddressFromLatLng = async (lat: number, lng: number): Promise<Address> 
     const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode({ location: { lat, lng } }, (results, status) => {
       if (status === 'OK' && results && results[0]) {
-        const addressComponents = results[0].address_components;
         resolve({
           addressLine: results[0].formatted_address,
-          city: extractFromComponents(addressComponents, 'locality') || extractFromComponents(addressComponents, 'administrative_area_level_2'),
-          state: extractFromComponents(addressComponents, 'administrative_area_level_1'),
-          pincode: extractFromComponents(addressComponents, 'postal_code'),
           coordinates: { lat, lng },
         });
       } else {
@@ -99,7 +92,7 @@ const LocationInputWithMap: React.FC<LocationInputWithMapProps> = ({ value, onCh
         ) : (
           <>
             <div>{address.addressLine}</div>
-            <div>{address.city}, {address.state} - {address.pincode}</div>
+            <div></div>
             <div>Lat: {marker.lat}, Lng: {marker.lng}</div>
           </>
         )}

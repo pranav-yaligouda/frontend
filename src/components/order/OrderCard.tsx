@@ -43,7 +43,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, userRole }) => {
         <div>
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-lg font-semibold">
-            Order #{order.id.substring(0, 8)}
+            Order #{(order.id ?? order._id ?? '').toString().substring(0, 8)}
           </h2>
           <OrderStatusBadge status={order.status} />
         </div>
@@ -54,12 +54,12 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, userRole }) => {
           <span className="font-medium">Items:</span> {order.items.length}
         </div>
         <div className="mb-2 text-sm">
-          <span className="font-medium">Total:</span> ₹{order.total}
+          <span className="font-medium">Total:</span> ₹{typeof order.total === 'number' ? order.total : (Array.isArray(order.items) ? order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) : 0)}
       </div>
         {userRole === UserRole.CUSTOMER && (
           <div className="mb-2 text-sm">
-            <span className="font-medium">Delivery Address:</span> {order.deliveryAddress}
-            </div>
+            <span className="font-medium">Delivery Address:</span> {order.deliveryAddress?.addressLine ?? ''}
+          </div>
         )}
         {(userRole === UserRole.HOTEL_MANAGER || userRole === UserRole.STORE_OWNER) && (
           <div className="mb-2 text-sm">

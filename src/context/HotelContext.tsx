@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getMyHotel } from '@/utils/hotelApi';
+
 
 export interface Hotel {
   _id: string;
@@ -32,6 +32,7 @@ export const HotelProvider = ({ children }: { children: ReactNode }) => {
     try {
       const token = localStorage.getItem('athani_token');
       if (!token) throw new Error('No token');
+      const { getMyHotel } = await import('@/utils/hotelApi');
       const data = await getMyHotel(token);
       setHotel(data);
     } catch (err) {

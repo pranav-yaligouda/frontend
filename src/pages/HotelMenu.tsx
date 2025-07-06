@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star, Clock, MapPin, ChevronLeft, Plus, Minus, Search } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
-import { getDishesByHotelId } from "@/utils/hotelApi";
+
 import { DISH_CATEGORIES } from "@/constants/dishCategorization";
 
 const DEFAULT_HOTEL_IMAGE = "/images/hotels/default.jpg";
@@ -64,7 +64,8 @@ const HotelMenu = () => {
         let dishData: any[] = [];
         let hotelData = null;
         try {
-          const dishesRes = await getDishesByHotelId(id);
+          const { getDishesByHotelId } = await import('@/utils/hotelApi');
+      const dishesRes = await getDishesByHotelId(id);
           if (dishesRes && dishesRes.success) {
             dishData = Array.isArray(dishesRes.data) ? dishesRes.data : [];
           } else {
@@ -153,7 +154,8 @@ const HotelMenu = () => {
         price: dish.price,
         image: dish.image || DEFAULT_DISH_IMAGE,
         storeId: hotel?.id,
-        storeName: hotel?.name
+        storeName: hotel?.name,
+        type: 'dish',
       });
     }
     toast.success(`${dish.name} added to cart!`);

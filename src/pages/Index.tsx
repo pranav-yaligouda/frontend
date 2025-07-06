@@ -11,7 +11,7 @@ import { Product, Category, Store, categories, stores, getFeaturedProducts } fro
 import { ChevronRight, Star, MapPin } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
-import { getAllHotels } from "@/utils/hotelApi";
+
 import WhatsOnYourMindSection from "@/components/home/WhatsOnYourMindSection";
 import HomeCategoryTabs from "@/components/home/HomeCategoryTabs";
 
@@ -37,21 +37,43 @@ const Index = () => {
     const fetchAll = async () => {
       setIsLoading(true);
       try {
+        const { getAllHotels } = await import('@/utils/hotelApi');
         const hotelsResponse = await getAllHotels();
         let hotelsData: any[] = [];
         if (hotelsResponse && hotelsResponse.success) {
-          hotelsData = Array.isArray(hotelsResponse.data) ? hotelsResponse.data : [];
+          // Support paginated response shape
+          if (hotelsResponse.data && Array.isArray(hotelsResponse.data.items)) {
+            hotelsData = hotelsResponse.data.items;
+          } else if (Array.isArray(hotelsResponse.data)) {
+            hotelsData = hotelsResponse.data;
+          } else {
+            hotelsData = [];
+          }
         } else {
           toast.error(hotelsResponse?.error || 'Failed to fetch hotels');
           hotelsData = [];
         }
-        const normalizedHotels = hotelsData.map((hotel: Hotel) => ({
-          ...hotel,
-          id: hotel._id || hotel.id, // Ensure 'id' is always present
-        }));
+        // Normalize hotel data and image URLs
+        const staticBase = import.meta.env.VITE_STATIC_URL || 'http://localhost:4000';
+        const normalizedHotels = hotelsData.map((hotel: Hotel) => {
+          let imageUrl = hotel.image;
+          if (imageUrl) {
+            if (/^data:image\//.test(imageUrl)) {
+              // Use base64 as-is
+            } else if (!/^https?:\/\//.test(imageUrl)) {
+              imageUrl = `${staticBase}/uploads/${imageUrl}`;
+            }
+          } else {
+            imageUrl = '/images/hotels/default.jpg';
+          }
+          return {
+            ...hotel,
+            id: hotel._id || hotel.id,
+            image: imageUrl,
+          };
+        });
         setHotels(normalizedHotels);
         // Flatten all hotel dishes into a single array, attaching hotel info
-        const staticBase = import.meta.env.VITE_STATIC_URL || 'http://localhost:4000';
         const normalized: Dish[] = [];
         for (const hotel of hotelsData) {
           for (const hotelDish of hotel.dishes || []) {
@@ -106,7 +128,8 @@ const Index = () => {
           : dish.image;
       })(),
       storeId: dish.hotelId,
-      storeName: dish.hotelName
+      storeName: dish.hotelName,
+      type: 'dish',
     });
     toast.success(`${dish.name} added to cart!`);
   };
@@ -230,21 +253,25 @@ const Index = () => {
                             {hotel.dishes?.length > 0 && (
                               <div className="mb-3">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  {hotel.dishes.slice(0, 2).map((dish, idx) => (
-                                    <div key={dish.id || idx} className="flex items-center bg-gray-50 rounded px-2 py-1">
-                                      <img
-                                        src={(() => {
-                                          const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api/v1').replace(/\/api\/v1$/, '');
-                                          return dish.image && !/^https?:\/\//.test(dish.image)
-                                            ? `${apiBase}/uploads/${dish.image}`
-                                            : dish.image;
-                                        })()}
-                                        alt={dish.name}
-                                        className="w-5 h-5 rounded object-cover mr-1"
-                                      />
-                                      <span className="text-xs text-gray-700">{dish.name}</span>
-                                    </div>
-                                  ))}
+                                  {hotel.dishes.slice(0, 2).map((dish, idx) => {
+  let dishImg = dish.image;
+  if (dishImg && !/^https?:\/\//.test(dishImg)) {
+    dishImg = `${import.meta.env.VITE_STATIC_URL || 'http://localhost:4000'}/uploads/${dishImg}`;
+  }
+  if (!dishImg) {
+    dishImg = '/images/dishes/default.jpg';
+  }
+  return (
+    <div key={dish.id || idx} className="flex items-center bg-gray-50 rounded px-2 py-1">
+      <img
+        src={dishImg}
+        alt={dish.name}
+        className="w-5 h-5 rounded object-cover mr-1"
+      />
+      <span className="text-xs text-gray-700">{dish.name}</span>
+    </div>
+  );
+})}
                                 </div>
                               </div>
                             )}

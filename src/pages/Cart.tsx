@@ -17,16 +17,15 @@ const Cart = () => {
   const navigate = useNavigate();
 
   // Address object state
-const [address, setAddress] = useState({
-  addressLine: '',
-  city: '',
-  state: '',
-  pincode: '',
-  coordinates: null as { lat: number; lng: number } | null,
-});
+  const [address, setAddress] = useState({
+    addressLine: '',
+    coordinates: null as { lat: number; lng: number } | null,
+  });
   const [instructions, setInstructions] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [customerLocation, setCustomerLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('cod');
+
 
   const storeItems = getStores().map((store) => {
     const storeProducts = items.filter((item) => item.storeId === store.storeId);
@@ -39,18 +38,13 @@ const [address, setAddress] = useState({
 
   const handleUpdateQuantity = (id: string, currentQuantity: number, change: number) => {
     const newQuantity = currentQuantity + change;
-    
-    // Find the product to check stock limits
     const cartItem = items.find(item => item.id === id);
     if (!cartItem) return;
-    
     const product = products.find(p => p.id === cartItem.productId);
-    
     if (product && newQuantity > product.stockQuantity) {
       toast.error(`Sorry, only ${product.stockQuantity} available in stock`);
       return;
     }
-    
     if (newQuantity <= 0) {
       removeItem(id);
     } else {
@@ -65,34 +59,77 @@ const [address, setAddress] = useState({
       return;
     }
 
-    // Validate address fields
-    if (!address.addressLine || !address.city || !address.state || !address.pincode) {
+    // Validate address fields (new model)
+    if (
+      !address.addressLine ||
+      !address.coordinates ||
+      typeof address.coordinates.lat !== 'number' ||
+      typeof address.coordinates.lng !== 'number'
+    ) {
       toast.error("Please enter a complete delivery address");
       return;
     }
 
     setIsProcessing(true);
     try {
-      // Place an order for each store
-      for (const store of getStores()) {
-        const storeProducts = items.filter((item) => item.storeId === store.storeId);
+      for (const store of storeItems) {
+        const storeProducts = store.items;
         if (storeProducts.length === 0) continue;
 
-        // Get store details (in a real app, this would come from your API)
-        const storeDetails = {
-          addressLine: store.storeName + ', Main Road',
-          city: 'Athani',
-          state: 'KA',
-          pincode: '591304',
-          coordinates: { lat: 0, lng: 0 }, // Default coordinates
-          businessType: 'store', // or 'hotel' as needed
-        };
+        const isHotel = storeProducts.some(item => item.type === 'dish');
+        let pickupAddress: any = null;
+        if (isHotel) {
+          // Inline hotel info fetch logic
+          try {
+            const { getHotelById } = await import('@/utils/hotelApi');
+            const hotelRes = await getHotelById(store.storeId);
+            if (!hotelRes || !hotelRes.success || !hotelRes.data) {
+              toast.error("Could not fetch hotel info for pickup address");
+              setIsProcessing(false);
+              return;
+            }
+            const hotel = hotelRes.data;
+            let city = '';
+            let state = '';
+            let pincode = '';
+            let addressLine = hotel.location?.address || hotel.name;
+            // Prefer explicit pincode field if present
+            if (hotel.location?.pincode) {
+              pincode = hotel.location.pincode;
+            } else if (hotel.location?.address) {
+              const addr = hotel.location.address;
+              const parts = addr.split(',').map((s: string) => s.trim());
+              if (parts.length >= 2) city = parts[parts.length - 2];
+              if (parts.length >= 3) state = parts[parts.length - 1].split(' ')[0];
+              // Improved: Try to extract pincode from any part
+              const pinMatch = addr.match(/\b\d{6}\b/);
+              if (pinMatch) pincode = pinMatch[0];
+            }
+            // Fallback if still not found
+            if (!pincode) pincode = '560001'; // Default to Bangalore central if all else fails
+            pickupAddress = {
+              addressLine,
+              coordinates: hotel.location?.coordinates && Array.isArray(hotel.location.coordinates)
+                ? { lat: hotel.location.coordinates[1], lng: hotel.location.coordinates[0] }
+                : { lat: 0, lng: 0 },
+            };
+          } catch (err) {
+            toast.error("Error fetching hotel info for pickup address");
+            setIsProcessing(false);
+            return;
+          }
+        } else {
+          // Fix: Only use store.addressLine and store.coordinates if present, fallback to storeName and default coordinates
+          pickupAddress = {
+            addressLine: (store as any).addressLine || store.storeName + ', Main Road',
+            coordinates: (store as any).coordinates || { lat: 0, lng: 0 },
+          };
+        }
 
-        // Prepare order items with required fields
         const orderItems = storeProducts.map((item) => ({
-          type: 'product', // or 'dish' based on your product type
-          itemId: item.productId, // Ensure this matches your backend's expected field name
-          productId: item.productId, // Include both if needed
+          type: item.type || 'product',
+          itemId: item.productId,
+          productId: item.productId,
           name: item.name,
           quantity: item.quantity,
           price: item.price,
@@ -100,93 +137,67 @@ const [address, setAddress] = useState({
           storeName: item.storeName,
         }));
 
-        // Validate items before proceeding
         const invalidItems = orderItems.filter(item => !item.itemId || !item.type);
         if (invalidItems.length > 0) {
           console.error('Invalid items:', invalidItems);
           throw new Error('Some items are missing required fields');
         }
 
-        // Build complete order payload
         const orderPayload = {
-          businessType: storeDetails.businessType,
+          businessType: isHotel ? 'hotel' : 'store',
           businessId: store.storeId,
           customerId: user?.id,
           items: orderItems,
+          paymentMethod,
           deliveryAddress: {
             addressLine: address.addressLine,
-            city: address.city,
-            state: address.state,
-            pincode: address.pincode,
             coordinates: address.coordinates || { lat: 0, lng: 0 },
           },
-          pickupAddress: {
-            addressLine: storeDetails.addressLine,
-            city: storeDetails.city,
-            state: storeDetails.state,
-            pincode: storeDetails.pincode,
-            coordinates: storeDetails.coordinates,
-          },
+          pickupAddress,
           notes: instructions,
-          status: 'pending', // Initial status
-          total: storeProducts.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+          status: 'PLACED',
         };
 
-        console.log('Sending order payload:', JSON.stringify(orderPayload, null, 2));
-
-        // Final validation
-        if (!orderPayload.businessId || !orderPayload.businessType || 
-            !orderPayload.customerId || orderPayload.items.length === 0) {
-          throw new Error('Order validation failed: Missing required fields');
+        try {
+          const response = await OrderProcessingService.processOrder(orderPayload);
+          console.log('Order response:', response);
+        } catch (error: any) {
+          console.error('Order processing error:', error);
+          const errorMessage = error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            'Failed to place order';
+          if (error.response?.data?.errors) {
+            const validationErrors = Object.values(error.response.data.errors)
+              .map((err: any) => `• ${err.message || err}`)
+              .join('\n');
+            toast.error(`Validation errors:\n${validationErrors}`, {
+              duration: 10000,
+            });
+          } else {
+            toast.error(errorMessage);
+          }
+          throw error;
         }
-
-      try {
-        const response = await OrderProcessingService.processOrder(orderPayload);
-        console.log('Order response:', response);
-      } catch (error: any) {
-        console.error('Order processing error:', error);
-        // Extract backend validation errors if available
-        const errorMessage = error.response?.data?.message || 
-                           error.response?.data?.error || 
-                           error.message || 
-                           'Failed to place order';
-        
-        // If there are validation errors, show them in detail
-        if (error.response?.data?.errors) {
-          const validationErrors = Object.values(error.response.data.errors)
-            .map((err: any) => `• ${err.message || err}`)
-            .join('\n');
-          toast.error(`Validation errors:\n${validationErrors}`, {
-            duration: 10000, // Show for 10 seconds
-          });
-        } else {
-          toast.error(errorMessage);
-        }
-        throw error; // Re-throw to be caught by outer try-catch
       }
+      clearCart();
+      toast.success("Order(s) placed successfully!");
+      navigate("/orders");
+    } catch (error: any) {
+      console.error("Order placement failed:", error);
+      if (!error.handled) {
+        toast.error(error.message || "Failed to place order. Please check your details and try again.");
+      }
+    } finally {
+      setIsProcessing(false);
     }
-    
-    // Only clear cart and redirect if all orders succeeded
-    clearCart();
-    toast.success("Order(s) placed successfully!");
-    navigate("/orders");
-  } catch (error: any) {
-    console.error("Order placement failed:", error);
-    // Don't show duplicate error if already shown in inner catch
-    if (!error.handled) {
-      toast.error(error.message || "Failed to place order. Please check your details and try again.");
-    }
-  } finally {
-    setIsProcessing(false);
-  }
-};
+  };
 
-  // Handle address change and attempt to get coordinates
   // Accepts an address object
-const handleAddressChange = (newAddressObj: typeof address) => {
-  setAddress(newAddressObj);
-  setCustomerLocation(newAddressObj.coordinates || null);
-};
+  const handleAddressChange = (newAddressObj: typeof address) => {
+    setAddress(newAddressObj);
+    setCustomerLocation(newAddressObj.coordinates || null);
+  };
 
   if (items.length === 0) {
     return (
@@ -324,9 +335,9 @@ const handleAddressChange = (newAddressObj: typeof address) => {
                     Delivery Address
                   </label>
                   <LocationInputWithMap
-  value={address}
-  onChange={handleAddressChange}
-/>
+                    value={address}
+                    onChange={handleAddressChange}
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -338,6 +349,34 @@ const handleAddressChange = (newAddressObj: typeof address) => {
                     value={instructions}
                     onChange={(e) => setInstructions(e.target.value)}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Payment Method
+                  </label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="cod"
+                        checked={paymentMethod === 'cod'}
+                        onChange={() => setPaymentMethod('cod')}
+                      />
+                      Cash on Delivery
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="online"
+                        checked={paymentMethod === 'online'}
+                        onChange={() => setPaymentMethod('online')}
+                      />
+                      Online Payment
+                    </label>
+                  </div>
                 </div>
 
                 <Button

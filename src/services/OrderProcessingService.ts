@@ -109,11 +109,26 @@ export class OrderProcessingService {
     }
   }
 
-  static async fetchOrdersByRole(role: string, userId: string) {
+  static async fetchOrdersByRole(params: {
+    page?: number;
+    pageSize?: number;
+    status?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  } = {}) {
     try {
-      const response = await API.get(`/orders?role=${role}&userId=${userId}`);
+      const query = new URLSearchParams();
+      if (typeof params.page === 'string') query.append('page', params.page);
+else if (typeof params.page === 'number') query.append('page', String(params.page));
+      if (typeof params.pageSize === 'string') query.append('pageSize', params.pageSize);
+else if (typeof params.pageSize === 'number') query.append('pageSize', String(params.pageSize));
+      if (params.status && params.status !== 'ALL') query.append('status', params.status);
+      if (params.dateFrom) query.append('dateFrom', params.dateFrom);
+      if (params.dateTo) query.append('dateTo', params.dateTo);
+      // Remove legacy/unsupported params (role, userId)
+      const response = await API.get(`/orders?${query.toString()}`);
       if (response.data && response.data.success) {
-        return response.data.data;
+        return response.data;
       } else {
         throw new Error(response.data.error || 'Failed to fetch orders');
       }
@@ -126,11 +141,25 @@ export class OrderProcessingService {
     }
   }
 
-  static async fetchAvailableOrdersForAgent() {
+  static async fetchAvailableOrdersForAgent(params: {
+    page?: number;
+    pageSize?: number;
+    status?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  } = {}) {
     try {
-      const response = await API.get(`/orders/available/agent`);
+      const query = new URLSearchParams();
+      if (typeof params.page === 'string') query.append('page', params.page);
+else if (typeof params.page === 'number') query.append('page', String(params.page));
+      if (typeof params.pageSize === 'string') query.append('pageSize', params.pageSize);
+else if (typeof params.pageSize === 'number') query.append('pageSize', String(params.pageSize));
+      if (params.status) query.append('status', params.status);
+      if (params.dateFrom) query.append('dateFrom', params.dateFrom);
+      if (params.dateTo) query.append('dateTo', params.dateTo);
+      const response = await API.get(`/orders/available/agent?${query.toString()}`);
       if (response.data && response.data.success) {
-        return response.data.data;
+        return response.data;
       } else {
         throw new Error(response.data.error || 'Failed to fetch available orders');
       }

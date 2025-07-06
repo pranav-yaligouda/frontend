@@ -29,7 +29,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
         price: discountedPrice || product.price,
         image: product.image,
         storeId: product.storeId,
-        storeName: product.storeName
+        storeName: product.storeName,
+        type: 'product',
       });
       toast.success(`Added ${product.name} to cart`);
       setIsAdding(false);
