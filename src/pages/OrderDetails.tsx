@@ -1,12 +1,13 @@
-
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import OrderDetailsComponent from "@/components/order/OrderDetails";
+import { useAuth, UserRole } from "@/context/AuthContext";
 
 const OrderDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
 
   if (!id) {
     return (

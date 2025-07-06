@@ -1,4 +1,3 @@
-
 import { Input } from "@/components/ui/input";
 import { MapPin } from "lucide-react";
 import { useEffect, useState } from "react";

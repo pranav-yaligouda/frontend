@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from "react";
+import Loader from "@/components/ui/Loader";
 import { useParams, Link } from "react-router-dom";
 import { ChevronLeft, MapPin, Clock } from "lucide-react";
 import ProductGrid from "@/components/product/ProductGrid";

@@ -15,6 +15,7 @@ import {
 
 const Navbar = () => {
   const { user, logout, isAuthenticated, hasRole } = useAuth();
+
   const { getItemCount } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();

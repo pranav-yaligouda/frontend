@@ -5,23 +5,34 @@ import { useCart } from "@/context/CartContext";
 import { useAuth, UserRole } from "@/context/AuthContext";
 import { Trash, Plus, Minus, ChevronLeft, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import LocationInput from "@/components/ui/locationInput";
+import LocationInputWithMap from "@/components/ui/LocationInputWithMap";
+// import LocationInput from "@/components/ui/locationInput"; // replaced with Google Maps version
 import { toast } from "sonner";
 import { createOrder, Product, products } from "@/data/models";
-import OrderProcessingService from "@/services/OrderProcessingService";
+import { OrderProcessingService } from "@/services/OrderProcessingService";
 
 const Cart = () => {
   const { items, removeItem, updateQuantity, clearCart, getTotal, getStores } = useCart();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const [address, setAddress] = useState("");
+  // Address object state
+  const [address, setAddress] = useState({
+    addressLine: '',
+    coordinates: null as { lat: number; lng: number } | null,
+  });
   const [instructions, setInstructions] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [customerLocation, setCustomerLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('cod');
+
+
+  // Filter out invalid cart items (missing id or storeId)
+  const invalidCartItems = items.filter(item => !item.id || !item.storeId);
+  const validItems = items.filter(item => item.id && item.storeId);
 
   const storeItems = getStores().map((store) => {
-    const storeProducts = items.filter((item) => item.storeId === store.storeId);
+    const storeProducts = validItems.filter((item) => item.storeId === store.storeId);
     const storeTotal = storeProducts.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
@@ -31,18 +42,13 @@ const Cart = () => {
 
   const handleUpdateQuantity = (id: string, currentQuantity: number, change: number) => {
     const newQuantity = currentQuantity + change;
-    
-    // Find the product to check stock limits
     const cartItem = items.find(item => item.id === id);
     if (!cartItem) return;
-    
     const product = products.find(p => p.id === cartItem.productId);
-    
     if (product && newQuantity > product.stockQuantity) {
       toast.error(`Sorry, only ${product.stockQuantity} available in stock`);
       return;
     }
-    
     if (newQuantity <= 0) {
       removeItem(id);
     } else {
@@ -51,102 +57,154 @@ const Cart = () => {
   };
 
   const handleCheckout = async () => {
+    if (invalidCartItems.length > 0) {
+      toast.error('Cart contains invalid items. Please remove them before proceeding.');
+      return;
+    }
     if (!isAuthenticated) {
       toast.error("Please login to checkout");
       navigate("/login");
       return;
     }
 
-    if (!address) {
-      toast.error("Please enter a delivery address");
+    // Validate address fields (new model)
+    if (
+      !address.addressLine ||
+      !address.coordinates ||
+      typeof address.coordinates.lat !== 'number' ||
+      typeof address.coordinates.lng !== 'number'
+    ) {
+      toast.error("Please enter a complete delivery address");
       return;
     }
 
     setIsProcessing(true);
     try {
-      // Prepare order items data
-      const orderItems = items.map((item) => ({
-        productId: item.productId,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        storeId: item.storeId,
-        storeName: item.storeName,
-      }));
+      for (const store of storeItems) {
+        const storeProducts = store.items;
+        if (storeProducts.length === 0) continue;
 
-      // If we have customer location, try to allocate from nearby stores
-      // Otherwise use the cart's current store allocations
-      let finalOrderItems = orderItems;
-      
-      if (customerLocation) {
-        try {
-          // Try to allocate from optimal stores
-          const cartItems = items.map(item => ({
-            productId: item.productId, 
-            quantity: item.quantity
-          }));
-          
-          const allocations = await OrderProcessingService.allocateOrderItems(
-            customerLocation,
-            cartItems
-          );
-          
-          // Format allocated items for order
-          finalOrderItems = [];
-          for (const store of allocations) {
-            for (const item of store.items) {
-              const cartItem = items.find(i => i.productId === item.productId);
-              if (cartItem) {
-                finalOrderItems.push({
-                  productId: item.productId,
-                  name: cartItem.name,
-                  price: cartItem.price,
-                  quantity: item.quantity,
-                  storeId: store.storeId,
-                  storeName: store.storeName,
-                });
-              }
+        const isHotel = storeProducts.some(item => item.type === 'dish');
+        let pickupAddress: any = null;
+        if (isHotel) {
+          // Inline hotel info fetch logic
+          try {
+            const { getHotelById } = await import('@/utils/hotelApi');
+            const hotelRes = await getHotelById(store.storeId);
+            if (!hotelRes || !hotelRes.success || !hotelRes.data) {
+              toast.error("Could not fetch hotel info for pickup address");
+              setIsProcessing(false);
+              return;
             }
+            const hotel = hotelRes.data;
+            let city = '';
+            let state = '';
+            let pincode = '';
+            let addressLine = hotel.location?.address || hotel.name;
+            // Prefer explicit pincode field if present
+            if (hotel.location?.pincode) {
+              pincode = hotel.location.pincode;
+            } else if (hotel.location?.address) {
+              const addr = hotel.location.address;
+              const parts = addr.split(',').map((s: string) => s.trim());
+              if (parts.length >= 2) city = parts[parts.length - 2];
+              if (parts.length >= 3) state = parts[parts.length - 1].split(' ')[0];
+              // Improved: Try to extract pincode from any part
+              const pinMatch = addr.match(/\b\d{6}\b/);
+              if (pinMatch) pincode = pinMatch[0];
+            }
+            // Fallback if still not found
+            if (!pincode) pincode = '560001'; // Default to Bangalore central if all else fails
+            pickupAddress = {
+              addressLine,
+              coordinates: hotel.location?.coordinates && Array.isArray(hotel.location.coordinates)
+                ? { lat: hotel.location.coordinates[1], lng: hotel.location.coordinates[0] }
+                : { lat: 0, lng: 0 },
+            };
+          } catch (err) {
+            toast.error("Error fetching hotel info for pickup address");
+            setIsProcessing(false);
+            return;
           }
-        } catch (error) {
-          console.error("Failed to allocate from optimal stores:", error);
-          // Fall back to cart's current allocations
+        } else {
+          // Fix: Only use store.addressLine and store.coordinates if present, fallback to storeName and default coordinates
+          pickupAddress = {
+            addressLine: (store as any).addressLine || store.storeName + ', Main Road',
+            coordinates: (store as any).coordinates || { lat: 0, lng: 0 },
+          };
+        }
+
+        const orderItems = storeProducts.map((item) => ({
+          type: item.type || 'product',
+          itemId: item.productId,
+          productId: item.productId,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          storeId: item.storeId,
+          storeName: item.storeName,
+        }));
+
+        const invalidItems = orderItems.filter(item => !item.itemId || !item.type);
+        if (invalidItems.length > 0) {
+          console.error('Invalid items:', invalidItems);
+          throw new Error('Some items are missing required fields');
+        }
+
+        const orderPayload = {
+          businessType: isHotel ? 'hotel' : 'store',
+          businessId: store.storeId,
+          customerId: user?.id,
+          items: orderItems,
+          paymentMethod,
+          deliveryAddress: {
+            addressLine: address.addressLine,
+            coordinates: address.coordinates || { lat: 0, lng: 0 },
+          },
+          pickupAddress,
+          notes: instructions,
+          status: 'PLACED',
+        };
+
+        try {
+          const response = await OrderProcessingService.processOrder(orderPayload);
+          console.log('Order response:', response);
+        } catch (error: any) {
+          console.error('Order processing error:', error);
+          const errorMessage = error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            'Failed to place order';
+          if (error.response?.data?.errors) {
+            const validationErrors = Object.values(error.response.data.errors)
+              .map((err: any) => `• ${err.message || err}`)
+              .join('\n');
+            toast.error(`Validation errors:\n${validationErrors}`, {
+              duration: 10000,
+            });
+          } else {
+            toast.error(errorMessage);
+          }
+          throw error;
         }
       }
-
-      // Process the order with our service
-      const result = await OrderProcessingService.processOrder({
-        customerId: user?.id || "",
-        items: finalOrderItems,
-        total: getTotal(),
-        deliveryAddress: address,
-        deliveryInstructions: instructions,
-        customerLocation: customerLocation || undefined
-      });
-      
-      // Clear cart and redirect
       clearCart();
-      toast.success("Order placed successfully!");
+      toast.success("Order(s) placed successfully!");
       navigate("/orders");
-    } catch (error) {
-      console.error("Failed to place order:", error);
-      toast.error("Failed to place order. Please try again.");
+    } catch (error: any) {
+      console.error("Order placement failed:", error);
+      if (!error.handled) {
+        toast.error(error.message || "Failed to place order. Please check your details and try again.");
+      }
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Handle address change and attempt to get coordinates
-  const handleAddressChange = (newAddress: string) => {
-    setAddress(newAddress);
-    
-    // In a real app, this would use geocoding to get coordinates
-    // For now, set a mock location
-    if (newAddress) {
-      setCustomerLocation({ lat: 16.7200, lng: 75.0700 });
-    } else {
-      setCustomerLocation(null);
-    }
+  // Accepts an address object
+  const handleAddressChange = (newAddressObj: typeof address) => {
+    setAddress(newAddressObj);
+    setCustomerLocation(newAddressObj.coordinates || null);
   };
 
   if (items.length === 0) {
@@ -284,10 +342,9 @@ const Cart = () => {
                   <label className="text-sm font-medium text-gray-700">
                     Delivery Address
                   </label>
-                  <LocationInput
+                  <LocationInputWithMap
                     value={address}
                     onChange={handleAddressChange}
-                    placeholder="Enter your delivery address"
                   />
                 </div>
 
@@ -300,6 +357,34 @@ const Cart = () => {
                     value={instructions}
                     onChange={(e) => setInstructions(e.target.value)}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Payment Method
+                  </label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="cod"
+                        checked={paymentMethod === 'cod'}
+                        onChange={() => setPaymentMethod('cod')}
+                      />
+                      Cash on Delivery
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="online"
+                        checked={paymentMethod === 'online'}
+                        onChange={() => setPaymentMethod('online')}
+                      />
+                      Online Payment
+                    </label>
+                  </div>
                 </div>
 
                 <Button

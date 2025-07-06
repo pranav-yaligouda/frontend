@@ -22,6 +22,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const handleAddToCart = () => {
     setIsAdding(true);
     setTimeout(() => {
+      // Validation: Ensure product.id and product.storeId are defined and non-empty
+      if (!product.id || !product.storeId) {
+        toast.error('Cannot add item to cart: Product data is invalid.');
+        setIsAdding(false);
+        return;
+      }
       addItem({
         id: product.id,
         productId: product.id,
@@ -29,7 +35,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
         price: discountedPrice || product.price,
         image: product.image,
         storeId: product.storeId,
-        storeName: product.storeName
+        storeName: product.storeName,
+        type: 'product',
       });
       toast.success(`Added ${product.name} to cart`);
       setIsAdding(false);

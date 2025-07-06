@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { MapPin, Package, Check, Map, Clock, Navigation } from "lucide-react";
@@ -25,9 +24,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth, UserRole } from "@/context/AuthContext";
-import { Order, orders as mockOrders, updateOrderStatus } from "@/data/models";
+import { Order } from "@/data/models";
 import { toast } from "sonner";
 import RouteMap from "@/components/delivery/RouteMap";
+import OrderProcessingService from "@/services/OrderProcessingService";
 
 const Deliveries = () => {
   const { user, hasRole } = useAuth();
@@ -37,60 +37,24 @@ const Deliveries = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user || !hasRole([UserRole.DELIVERY])) return;
+    if (!user || !hasRole([UserRole.DELIVERY_AGENT])) return;
 
     // In a real app, fetch deliveries for this agent
     setIsLoading(true);
     setTimeout(() => {
       // Filter orders that are ready for delivery or out for delivery
-      const deliveryOrders = mockOrders.filter(
+      const deliveryOrders = orders.filter(
         (order) => order.status === "ready" || order.status === "out_for_delivery"
-      ).map(order => {
-        // Add optimized route to orders that don't have it
-        if (!order.optimizedRoute) {
-          // Generate a simple mock route
-          const storePickups = order.storeIds.map(storeId => {
-            // In a real app we'd get the store data from API
-            const storeName = storeId === 'store1' ? 'Fresh Greens Market' : 'Athani General Store';
-            const location = storeId === 'store1' 
-              ? { lat: 16.7359, lng: 75.0689 }
-              : { lat: 16.7289, lng: 75.0759 };
-              
-            const storeItems = order.items
-              .filter(item => item.storeId === storeId)
-              .map(item => item.productId);
-              
-            return {
-              storeId,
-              storeName,
-              location,
-              items: storeItems
-            };
-          });
-          
-          return {
-            ...order,
-            optimizedRoute: {
-              storePickups,
-              customerDropoff: {
-                location: { lat: 16.7200, lng: 75.0700 }, // Mock customer location
-                address: order.deliveryAddress
-              }
-            }
-          };
-        }
-        
-        return order;
-      });
+      );
       
       setOrders(deliveryOrders);
       setIsLoading(false);
     }, 1000);
-  }, [user, hasRole]);
+  }, [user, hasRole, orders]);
 
   const handlePickupOrder = async (orderId: string) => {
     try {
-      await updateOrderStatus(orderId, "out_for_delivery");
+      await OrderProcessingService.updateOrderStatus(orderId, "out_for_delivery");
       
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
@@ -109,7 +73,7 @@ const Deliveries = () => {
 
   const handleDeliverOrder = async (orderId: string) => {
     try {
-      await updateOrderStatus(orderId, "delivered");
+      await OrderProcessingService.updateOrderStatus(orderId, "delivered");
       
       setOrders((prevOrders) =>
         prevOrders.filter((order) => order.id !== orderId)
@@ -143,7 +107,7 @@ const Deliveries = () => {
   };
 
   // Redirect if not a delivery agent
-  if (!isLoading && (!user || !hasRole([UserRole.DELIVERY]))) {
+  if (!isLoading && (!user || !hasRole([UserRole.DELIVERY_AGENT]))) {
     return (
       <div className="container px-4 py-8 mx-auto">
         <div className="max-w-md mx-auto text-center">

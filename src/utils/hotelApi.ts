@@ -1,7 +1,10 @@
 // Utility for hotel manager dish APIs
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000/api/v1';
+const API_BASE = import.meta.env.VITE_API_URL;
+if (!API_BASE) {
+  throw new Error('VITE_API_URL environment variable is not set. Please configure it in your .env file.');
+}
 
 // Fetch a single hotel by id (public info)
 export async function getHotelById(hotelId: string) {
@@ -34,11 +37,24 @@ export async function addDish(token: string, formData: FormData) {
   return res.data;
 }
 
-// Fetch the standardized dish catalog for hotel managers
-export async function getStandardDishes(token: string) {
-  const res = await axios.get(`${API_BASE}/standard-dishes`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+// Fetch all dishes (public, paginated, filterable)
+export async function getAllDishes(params: {
+  page?: number;
+  limit?: number;
+  hotelId?: string;
+  category?: string;
+  mealType?: string;
+  cuisineType?: string;
+} = {}) {
+  const searchParams = new URLSearchParams();
+  if (params.page) searchParams.append('page', String(params.page));
+  if (params.limit) searchParams.append('limit', String(params.limit));
+  if (params.hotelId) searchParams.append('hotelId', params.hotelId);
+  if (params.category) searchParams.append('category', params.category);
+  if (params.mealType) searchParams.append('mealType', params.mealType);
+  if (params.cuisineType) searchParams.append('cuisineType', params.cuisineType);
+  const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
+  const res = await axios.get(`${API_BASE}/dishes${query}`);
   return res.data;
 }
 
