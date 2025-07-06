@@ -10,21 +10,24 @@ import { CartProvider } from "@/context/CartContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import Category from "./pages/Category";
-import Product from "./pages/Product";
-import Store from "./pages/Store";
-import Cart from "./pages/Cart";
-import Orders from "./pages/Orders";
-import OrderDetails from "./pages/OrderDetails";
-import StoreFront from "./pages/StoreFront";
-import HotelDashboard from "./pages/HotelDashboard";
-import HotelMenu from "./pages/HotelMenu";
-import Deliveries from "./pages/Deliveries";
-import Search from "./pages/Search";
-import NotFound from "./pages/NotFound";
-import Profile from "./pages/Profile";
+import React, { Suspense, lazy } from "react";
+import Loader from "@/components/ui/Loader";
+
+const Index = lazy(() => import("./pages/Index"));
+const Login = lazy(() => import("./pages/Login"));
+const Category = lazy(() => import("./pages/Category"));
+const Product = lazy(() => import("./pages/Product"));
+const Store = lazy(() => import("./pages/Store"));
+const Cart = lazy(() => import("./pages/Cart"));
+const Orders = lazy(() => import("./pages/Orders"));
+const OrderDetails = lazy(() => import("./pages/OrderDetails"));
+const StoreFront = lazy(() => import("./pages/StoreFront"));
+const HotelDashboard = lazy(() => import("./pages/HotelDashboard"));
+const HotelMenu = lazy(() => import("./pages/HotelMenu"));
+const Deliveries = lazy(() => import("./pages/Deliveries"));
+const Search = lazy(() => import("./pages/Search"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Profile = lazy(() => import("./pages/Profile"));
 
 const queryClient = new QueryClient();
 
@@ -39,6 +42,7 @@ const App = () => (
             <div className="flex flex-col min-h-screen">
               <Navbar />
               <main className="flex-grow">
+                <Suspense fallback={<Loader />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/login" element={<Login />} />
@@ -56,6 +60,7 @@ const App = () => (
                   <Route path="/search" element={<Search />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+              </Suspense>
               </main>
               <Footer />
             </div>

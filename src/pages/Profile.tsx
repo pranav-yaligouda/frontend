@@ -1,4 +1,5 @@
 import React from "react";
+import Loader from "@/components/ui/Loader";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import AppearanceSelector from "@/components/profile/AppearanceSelector";
 import AddressBook from "@/components/profile/AddressBook";
@@ -10,7 +11,7 @@ const Profile: React.FC = () => {
   const { user, logout, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div className="text-center py-10">Loading...</div>;
+    return <Loader />;
   }
   if (!user) {
     return <div className="text-center py-10">You are not logged in.</div>;

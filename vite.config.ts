@@ -24,15 +24,20 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          react: ['react', 'react-dom'],
-          vendor: [
-            'axios',
-            'lodash',
-            'sonner',
-            'lucide-react',
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            // DO NOT split react/react-dom!
+            if (id.includes('recharts')) return 'recharts-vendor';
+            if (id.includes('date-fns')) return 'date-fns-vendor';
+            if (id.includes('lodash')) return 'lodash-vendor';
+            if (id.includes('axios')) return 'axios-vendor';
+            if (id.includes('sonner')) return 'sonner-vendor';
+            if (id.includes('lucide-react')) return 'lucide-vendor';
+            if (id.includes('@tanstack/react-query')) return 'react-query-vendor';
+            if (id.includes('@radix-ui')) return 'radix-vendor';
             // add more large libraries as needed
-          ],
+            return 'vendor';
+          }
         },
       },
     },

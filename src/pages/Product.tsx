@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from "react";
+import Loader from "@/components/ui/Loader";
 import { useParams, Link } from "react-router-dom";
 import { ChevronLeft, ShoppingCart, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,7 @@ const Product = () => {
           image: product.image,
           storeId: product.storeId,
           storeName: product.storeName,
+          type: "product"
         });
       }
 
