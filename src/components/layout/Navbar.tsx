@@ -51,7 +51,7 @@ const Navbar = () => {
           <nav className="items-center hidden space-x-6 md:flex">
             {isAuthenticated && hasRole([UserRole.STORE_OWNER]) && (
               <Link
-                to="/storefront"
+                to="/store-dashboard"
                 className="text-sm font-medium text-gray-700 transition-colors hover:text-primary"
               >
                 My Store
