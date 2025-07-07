@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createProduct, updateProduct } from '@/api/product';
-import { Product } from '@/types/product';
+import type { Product } from '@/types/product';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,14 +39,14 @@ const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, initial, cat
   };
 
   const handleStockUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setStockUnit(e.target.value);
+    setStockUnit(e.target.value as 'grams' | 'kg' | 'pieces');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const payload = { ...form, storeId, unit: stockUnit };
+      const payload = { ...form, storeId, unit: stockUnit as 'grams' | 'kg' | 'pieces' };
       if (isEdit && form._id) {
         await updateProduct(form._id, payload);
         toast({ title: 'Product updated' });

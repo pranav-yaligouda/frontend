@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { 
@@ -14,10 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-
+import type { Order } from "@/types/order";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import RouteMap from "../delivery/RouteMap";
+import OrderProcessingService from "@/api/order";
 
 interface OrderDetailsProps {
   orderId: string;
@@ -32,8 +32,7 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
     const fetchOrderDetails = async () => {
       setIsLoading(true);
       try {
-        // Use orders array directly instead of getOrderById
-        const orderData = orders.find(o => o.id === orderId);
+        const orderData = await OrderProcessingService.fetchOrderById(orderId);
         if (orderData) {
           setOrder(orderData);
         }
@@ -89,23 +88,27 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
   }, {} as Record<string, { storeName: string, items: typeof order.items }>);
 
   const statusColors: Record<string, string> = {
-    pending: "bg-yellow-100 text-yellow-800",
-    confirmed: "bg-blue-100 text-blue-800",
-    preparing: "bg-indigo-100 text-indigo-800",
-    ready: "bg-purple-100 text-purple-800",
-    out_for_delivery: "bg-orange-100 text-orange-800",
-    delivered: "bg-green-100 text-green-800",
-    cancelled: "bg-red-100 text-red-800",
+    PLACED: "bg-yellow-100 text-yellow-800",
+    ACCEPTED_BY_VENDOR: "bg-blue-100 text-blue-800",
+    PREPARING: "bg-indigo-100 text-indigo-800",
+    READY_FOR_PICKUP: "bg-purple-100 text-purple-800",
+    ACCEPTED_BY_AGENT: "bg-orange-100 text-orange-800",
+    PICKED_UP: "bg-orange-200 text-orange-900",
+    DELIVERED: "bg-green-100 text-green-800",
+    CANCELLED: "bg-red-100 text-red-800",
+    REJECTED: "bg-red-200 text-red-900",
   };
 
   const statusLabels: Record<string, string> = {
-    pending: "Pending",
-    confirmed: "Confirmed",
-    preparing: "Preparing",
-    ready: "Ready for Pickup",
-    out_for_delivery: "Out for Delivery",
-    delivered: "Delivered",
-    cancelled: "Cancelled",
+    PLACED: "Placed",
+    ACCEPTED_BY_VENDOR: "Accepted by Vendor",
+    PREPARING: "Preparing",
+    READY_FOR_PICKUP: "Ready for Pickup",
+    ACCEPTED_BY_AGENT: "Accepted by Agent",
+    PICKED_UP: "Picked Up",
+    DELIVERED: "Delivered",
+    CANCELLED: "Cancelled",
+    REJECTED: "Rejected",
   };
 
   return (
@@ -192,7 +195,7 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
                 <p className="text-sm text-gray-500">Delivery Address</p>
                 <div className="flex items-start gap-2 mt-1">
                   <MapPin className="h-4 w-4 text-gray-400 mt-1" />
-                  <span>{order.deliveryAddress}</span>
+                  <span>{order.deliveryAddress?.addressLine || ""}</span>
                 </div>
               </div>
               
@@ -219,7 +222,11 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
               <div>
                 <p className="text-sm text-gray-500">Payment Method</p>
                 <p className="mt-1 font-medium">
-                  {order.paymentMethod === "cash" ? "Cash on Delivery" : order.paymentMethod}
+                  {order.paymentMethod === "cod"
+                    ? "Cash on Delivery"
+                    : order.paymentMethod === "online"
+                      ? "Online Payment"
+                      : order.paymentMethod}
                 </p>
               </div>
               
@@ -250,7 +257,7 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
                     {format(new Date(order.createdAt), "MMM d, h:mm a")}
                   </p>
                 </li>
-                {order.status !== "pending" && (
+                {order.status !== "PLACED" && (
                   <li className="mb-6 ms-6">
                     <span className="absolute flex items-center justify-center w-6 h-6 bg-blue-600 rounded-full -start-3 ring-8 ring-white">
                       <Package className="w-3 h-3 text-white" />
@@ -261,7 +268,7 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
                     </p>
                   </li>
                 )}
-                {["preparing", "ready", "out_for_delivery", "delivered"].includes(order.status) && (
+                {["PREPARING", "READY_FOR_PICKUP", "ACCEPTED_BY_AGENT", "PICKED_UP", "DELIVERED"].includes(order.status) && (
                   <li className="mb-6 ms-6">
                     <span className="absolute flex items-center justify-center w-6 h-6 bg-indigo-600 rounded-full -start-3 ring-8 ring-white">
                       <Package className="w-3 h-3 text-white" />
@@ -269,7 +276,7 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
                     <h3 className="font-medium">Preparing Order</h3>
                   </li>
                 )}
-                {["out_for_delivery", "delivered"].includes(order.status) && (
+                {["ACCEPTED_BY_AGENT", "PICKED_UP", "DELIVERED"].includes(order.status) && (
                   <li className="mb-6 ms-6">
                     <span className="absolute flex items-center justify-center w-6 h-6 bg-orange-600 rounded-full -start-3 ring-8 ring-white">
                       <Truck className="w-3 h-3 text-white" />
@@ -277,7 +284,7 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
                     <h3 className="font-medium">Out for Delivery</h3>
                   </li>
                 )}
-                {order.status === "delivered" && (
+                {order.status === "DELIVERED" && (
                   <li className="ms-6">
                     <span className="absolute flex items-center justify-center w-6 h-6 bg-green-600 rounded-full -start-3 ring-8 ring-white">
                       <Package className="w-3 h-3 text-white" />

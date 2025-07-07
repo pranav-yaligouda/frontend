@@ -2,6 +2,7 @@ import type { Order } from "@/types/order";
 import { Button } from "@/components/ui/button";
 import OrderStatusBadge from "../order/OrderStatusBadge";
 import { Shield } from "lucide-react";
+import { OrderStatus } from "@/types/order";
 
 interface RecentOrdersListProps {
   orders: Order[];
@@ -20,12 +21,12 @@ const RecentOrdersList = ({ orders, onViewDetails, onUpdateStatus }: RecentOrder
           <div className="space-y-4">
             {orders.map((order) => (
               <div key={order.id} className={`flex justify-between p-3 border rounded-md ${
-                order.status === "pending" ? "border-yellow-300 bg-yellow-50" : ""
+                order.status === "PLACED" ? "border-yellow-300 bg-yellow-50" : ""
               }`}>
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="font-medium">#{order.id.substring(0, 8)}</p>
-                    {order.status === "pending" && (
+                    {order.status === "PLACED" && (
                       <span className="px-1.5 py-0.5 text-xs bg-yellow-100 text-yellow-800 rounded-full">
                         New
                       </span>

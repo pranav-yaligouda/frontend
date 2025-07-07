@@ -1,33 +1,35 @@
-
 import { Badge } from "@/components/ui/badge";
-
-type OrderStatus = "pending" | "confirmed" | "preparing" | "ready" | "out_for_delivery" | "delivered" | "cancelled";
+import type { OrderStatus } from "@/types/order";
 
 interface OrderStatusBadgeProps {
   status: OrderStatus;
 }
 
+const statusColors: Record<OrderStatus, string> = {
+  PLACED: "bg-yellow-100 text-yellow-800",
+  ACCEPTED_BY_VENDOR: "bg-blue-100 text-blue-800",
+  PREPARING: "bg-indigo-100 text-indigo-800",
+  READY_FOR_PICKUP: "bg-purple-100 text-purple-800",
+  ACCEPTED_BY_AGENT: "bg-orange-100 text-orange-800",
+  PICKED_UP: "bg-orange-200 text-orange-900",
+  DELIVERED: "bg-green-100 text-green-800",
+  CANCELLED: "bg-red-100 text-red-800",
+  REJECTED: "bg-red-200 text-red-900",
+};
+
+const statusLabels: Record<OrderStatus, string> = {
+  PLACED: "Placed",
+  ACCEPTED_BY_VENDOR: "Accepted by Vendor",
+  PREPARING: "Preparing",
+  READY_FOR_PICKUP: "Ready for Pickup",
+  ACCEPTED_BY_AGENT: "Accepted by Agent",
+  PICKED_UP: "Picked Up",
+  DELIVERED: "Delivered",
+  CANCELLED: "Cancelled",
+  REJECTED: "Rejected",
+};
+
 const OrderStatusBadge = ({ status }: OrderStatusBadgeProps) => {
-  const statusColors: Record<OrderStatus, string> = {
-    pending: "bg-yellow-100 text-yellow-800",
-    confirmed: "bg-blue-100 text-blue-800",
-    preparing: "bg-indigo-100 text-indigo-800",
-    ready: "bg-purple-100 text-purple-800",
-    out_for_delivery: "bg-orange-100 text-orange-800",
-    delivered: "bg-green-100 text-green-800",
-    cancelled: "bg-red-100 text-red-800",
-  };
-
-  const statusLabels: Record<OrderStatus, string> = {
-    pending: "Pending",
-    confirmed: "Confirmed",
-    preparing: "Preparing",
-    ready: "Ready for Pickup",
-    out_for_delivery: "Out for Delivery",
-    delivered: "Delivered",
-    cancelled: "Cancelled",
-  };
-
   return (
     <Badge className={`${statusColors[status]} font-normal`}>
       {statusLabels[status]}

@@ -16,3 +16,8 @@ export const updateProduct = (id: string, data: Partial<Product>) =>
 // Delete a product
 export const deleteProduct = (id: string) =>
   API.delete(`/products/${id}`);
+
+// Fetch a single product by ID
+export const getProductById = (id: string) =>
+  API.get<{ data: Product }>(`/products/${id}`)
+    .then(res => res.data.data);

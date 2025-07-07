@@ -1,4 +1,7 @@
 export interface OrderItem {
+  storeId: any;
+  productId: Key;
+  storeName: string;
   type: 'dish' | 'product';
   itemId: string;
   name: string;
@@ -23,6 +26,10 @@ export interface Address {
 }
 
 export interface Order {
+  storePins: any;
+  deliveryInstructions: any;
+  verificationPin: any;
+  optimizedRoute: boolean;
   id: string;
   businessType: 'hotel' | 'store';
   businessId: string;

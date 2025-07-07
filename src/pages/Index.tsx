@@ -101,7 +101,7 @@ const Index = () => {
             }
             // Robust normalization: always set id from _id and hotelId from hotel._id or fallback to dish.hotel
             const dishId = hotelDish._id || hotelDish.id;
-            const hotelId = hotel._id || hotel.id || hotelDish.hotel;
+            const hotelId = hotel._id || hotel.id || hotelDish.hotelId;
             if (!dishId || !hotelId) {
               if (typeof window !== 'undefined' && window.console) {
                 window.console.warn('Skipping dish with missing _id or hotelId:', { hotelDish, hotel });
@@ -192,10 +192,22 @@ const Index = () => {
         if (grocerySearch) params.search = grocerySearch;
         params.page = 1;
         params.limit = 20;
-        const res = await getProducts(params);
+        if (!params.storeId) {
+          throw new Error('Store ID is required to fetch products');
+        }
+        const res = await getProducts(params as {
+          storeId: string;
+          category?: string;
+          search?: string;
+          page?: number;
+          limit?: number;
+        });
         setGroceryProducts(res.data.data.items || []);
       } catch (err) {
         toast.error('Failed to fetch products');
+        setGroceryProducts([]);
+        // Optionally log error for debugging
+        // console.error(err);
       } finally {
         setGroceryLoading(false);
       }

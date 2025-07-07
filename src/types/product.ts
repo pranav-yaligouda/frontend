@@ -1,18 +1,15 @@
 export interface Product {
-    _id: string;
+    _id?: string;
+    store: string; // storeId as string
     name: string;
-    description: string;
+    description?: string;
     price: number;
+    stock: number;
+    image?: string;
     category: string;
-    image: string;
-    stockQuantity: number;
-    storeId: string;
-    unit: string;
-    storeName: string;
-    discountPercent?: number;
-    featured?: boolean;
-    barcode?: string;
-    sku?: string;
-    costPrice?: number;
-    lastRestocked?: string;
-  }
+    available: boolean;
+    unit: 'grams' | 'kg' | 'pieces';
+    isDeleted?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+}
