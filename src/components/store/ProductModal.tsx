@@ -46,7 +46,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, initial, cat
     e.preventDefault();
     setLoading(true);
     try {
-      const payload = { ...form, store: storeId, unit: stockUnit };
+      const payload = { ...form, storeId, unit: stockUnit };
       if (isEdit && form._id) {
         await updateProduct(form._id, payload);
         toast({ title: 'Product updated' });
