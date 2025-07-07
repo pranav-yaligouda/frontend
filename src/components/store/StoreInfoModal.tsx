@@ -90,91 +90,91 @@ const StoreInfoModal: React.FC<StoreInfoModalProps> = ({ open, onSubmit, initial
             Please provide your store's information and business hours.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {step === 1 && (
-            <div className="space-y-4">
-              <Input
-                label="Store Name"
-                value={form.name}
-                onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                readOnly={!!initial?.name}
-                className={initial?.name ? "w-full bg-gray-100 cursor-not-allowed" : "w-full"}
-              />
-              <LocationInputWithMap
-                value={{ addressLine: form.address, coordinates: form.location }}
-                onChange={handleLocationChange}
-              />
-              <div className="flex justify-end">
-                <Button type="button" onClick={() => setStep(2)}>
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
-          {step === 2 && (
-            <div className="space-y-4">
-              <div>
-                <label className="font-semibold">Weekly Timings</label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {WEEKDAYS.map(day => (
-                    <div key={day} className="space-y-2">
-                      <span>{day}</span>
-                      <div className="flex gap-2 items-center">
-                        <input
-                          type="time"
-                          value={form.timings[day].open}
-                          onChange={e => handleTimingChange(day, 'open', e.target.value)}
-                        />
-                        <span>-</span>
-                        <input
-                          type="time"
-                          value={form.timings[day].close}
-                          onChange={e => handleTimingChange(day, 'close', e.target.value)}
-                        />
-                        <input
-                          type="checkbox"
-                          checked={form.timings[day].holiday}
-                          onChange={e => handleTimingChange(day, 'holiday', e.target.checked)}
-                        />
-                        <span>Holiday</span>
-                      </div>
-                    </div>
-                  ))}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {step === 1 && (
+              <div className="space-y-4">
+                <Input
+                  label="Store Name"
+                  value={form.name}
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  readOnly={!!initial?.name}
+                  className={initial?.name ? "w-full bg-gray-100 cursor-not-allowed" : "w-full"}
+                />
+                <LocationInputWithMap
+                  value={{ addressLine: form.address, coordinates: form.location }}
+                  onChange={handleLocationChange}
+                />
+                <div className="flex justify-end">
+                  <Button type="button" onClick={() => setStep(2)}>
+                    Next
+                  </Button>
                 </div>
               </div>
-              <div>
-                <label className="font-semibold">Holiday Calendar</label>
-                <Calendar
-                  mode="multiple"
-                  selected={calendarDates}
-                  onSelect={setCalendarDates}
-                  className="rounded-md border"
-                />
+            )}
+            {step === 2 && (
+              <div className="space-y-4">
+                <div>
+                  <label className="font-semibold">Weekly Timings</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {WEEKDAYS.map(day => (
+                      <div key={day} className="space-y-2">
+                        <span>{day}</span>
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="time"
+                            value={form.timings[day].open}
+                            onChange={e => handleTimingChange(day, 'open', e.target.value)}
+                          />
+                          <span>-</span>
+                          <input
+                            type="time"
+                            value={form.timings[day].close}
+                            onChange={e => handleTimingChange(day, 'close', e.target.value)}
+                          />
+                          <input
+                            type="checkbox"
+                            checked={form.timings[day].holiday}
+                            onChange={e => handleTimingChange(day, 'holiday', e.target.checked)}
+                          />
+                          <span>Holiday</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="font-semibold">Holiday Calendar</label>
+                  <Calendar
+                    mode="multiple"
+                    selected={calendarDates}
+                    onSelect={setCalendarDates}
+                    className="rounded-md border"
+                  />
+                </div>
+                <div>
+                  <label className="font-semibold">Product Categories</label>
+                  <select
+                    multiple
+                    className="w-full min-h-[80px] border rounded"
+                    value={form.categories}
+                    onChange={handleCategoryChange}
+                  >
+                    {CATEGORY_OPTIONS.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex justify-between gap-4 pt-4">
+                  <Button type="button" variant="outline" onClick={() => setStep(1)}>
+                    Back
+                  </Button>
+                  <Button type="submit" disabled={loading}>
+                    {loading ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
               </div>
-              <div>
-                <label className="font-semibold">Product Categories</label>
-                <select
-                  multiple
-                  className="w-full min-h-[80px] border rounded"
-                  value={form.categories}
-                  onChange={handleCategoryChange}
-                >
-                  {CATEGORY_OPTIONS.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex justify-between gap-4 pt-4">
-                <Button type="button" variant="outline" onClick={() => setStep(1)}>
-                  Back
-                </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading ? 'Saving...' : 'Save'}
-                </Button>
-              </div>
-            </div>
-          )}
-        </form>
+            )}
+          </form>
       </DialogContent>
     </Dialog>
   );
