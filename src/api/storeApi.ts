@@ -16,3 +16,4 @@ export async function updateMyStore(data: Record<string, unknown>) {
   const { data: updated } = await API.put('/stores/me', data);
   return updated;
 }
+

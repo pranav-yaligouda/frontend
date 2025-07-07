@@ -7,7 +7,6 @@ import ProductGrid from "@/components/product/ProductGrid";
 import CategoryCard from "@/components/category/CategoryCard";
 import StoreCard from "@/components/store/StoreCard";
 import PerfectionSection from "@/components/home/PerfectionSection";
-import { Product, Category, Store, categories, stores, getFeaturedProducts } from "@/data/models";
 import { ChevronRight, Star, MapPin } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
@@ -344,56 +343,6 @@ const Index = () => {
                     />
                     <button type="submit" className="ml-2 px-3 py-1.5 bg-green-600 text-white rounded-full text-sm font-semibold">Search</button>
                   </form>
-                </div>
-                {/* Categories Section */}
-                <div className="bg-green-50 rounded-2xl p-8">
-                  <div className="flex items-center justify-between mb-8">
-                    <div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">Shop by Categories</h3>
-                      <p className="text-gray-600">Find everything you need organized by categories</p>
-                    </div>
-                    <Link to="/categories" className="flex items-center text-sm text-green-600 hover:text-green-700 font-medium">
-                      View All Categories
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </Link>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                    {categories.map((category: Category) => (
-                      <CategoryCard key={category.id} category={category} />
-                    ))}
-                  </div>
-                </div>
-                {/* Featured Products */}
-                <div className="bg-white rounded-2xl p-8 shadow-sm border">
-                  <div className="flex items-center justify-between mb-8">
-                    <div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">Featured Products</h3>
-                      <p className="text-gray-600">Handpicked fresh products at great prices</p>
-                    </div>
-                    <Link to="/products" className="flex items-center text-sm text-green-600 hover:text-green-700 font-medium">
-                      View All Products
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </Link>
-                  </div>
-                  <ProductGrid products={featuredProducts} isLoading={isLoading} />
-                </div>
-                {/* Popular Stores */}
-                <div className="bg-green-50 rounded-2xl p-8">
-                  <div className="flex items-center justify-between mb-8">
-                    <div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">Popular Stores</h3>
-                      <p className="text-gray-600">Shop from your favorite local stores</p>
-                    </div>
-                    <Link to="/stores" className="flex items-center text-sm text-green-600 hover:text-green-700 font-medium">
-                      View All Stores
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </Link>
-                  </div>
-                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {stores.map((store: Store) => (
-                      <StoreCard key={store.id} store={store} />
-                    ))}
-                  </div>
                 </div>
                 {/* Grocery Perfection Section */}
                 <PerfectionSection
