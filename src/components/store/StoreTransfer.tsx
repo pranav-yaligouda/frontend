@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   Card, 
@@ -28,9 +27,9 @@ import {
 import { Label } from "@/components/ui/label";
 import { Truck, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
+import type { Store } from "@/types/store";
+import type { Product } from "@/types/product";
 import { 
-  Product, 
-  Store, 
   StoreProduct, 
   createStoreTransfer,
   stores 

@@ -1,5 +1,4 @@
-
-import { Order } from "@/data/models";
+import type { Order } from "@/types/order";
 import { Button } from "@/components/ui/button";
 import OrderStatusBadge from "../order/OrderStatusBadge";
 import { Shield } from "lucide-react";

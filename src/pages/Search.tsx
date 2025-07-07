@@ -1,9 +1,8 @@
-
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import ProductGrid from "@/components/product/ProductGrid";
-import { Product, searchProducts } from "@/data/models";
+import type { Product } from "@/types/product";
 
 const Search = () => {
   const [searchParams] = useSearchParams();
@@ -16,8 +15,7 @@ const Search = () => {
       setIsLoading(true);
       try {
         if (query.trim()) {
-          const results = await searchProducts(query);
-          setProducts(results);
+          // TODO: Replace searchProducts usage with real API calls.
         } else {
           setProducts([]);
         }

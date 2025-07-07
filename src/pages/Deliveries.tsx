@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth, UserRole } from "@/context/AuthContext";
-import { Order } from "@/data/models";
+import type { Order } from "@/types/order";
 import { toast } from "sonner";
 import RouteMap from "@/components/delivery/RouteMap";
 import OrderProcessingService from "@/api/order";

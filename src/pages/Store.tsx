@@ -1,14 +1,14 @@
-
 import { useEffect, useState } from "react";
 import Loader from "@/components/ui/Loader";
 import { useParams, Link } from "react-router-dom";
 import { ChevronLeft, MapPin, Clock } from "lucide-react";
 import ProductGrid from "@/components/product/ProductGrid";
-import { Store as StoreType, Product, stores, getProductsByStore } from "@/data/models";
+import type { Store } from "@/types/store";
+import type { Product } from "@/types/product";
 
 const Store = () => {
   const { id } = useParams<{ id: string }>();
-  const [store, setStore] = useState<StoreType | null>(null);
+  const [store, setStore] = useState<Store | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);

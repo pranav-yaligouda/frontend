@@ -1,8 +1,8 @@
-
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import ProductGrid from "@/components/product/ProductGrid";
-import { Product, getProductsByCategory, categories } from "@/data/models";
+import type { Product } from "@/types/product";
+import type { Category } from "@/types/category";
 import { ChevronLeft } from "lucide-react";
 
 const Category = () => {

@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Order, orders } from "@/data/models";
+
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import RouteMap from "../delivery/RouteMap";
