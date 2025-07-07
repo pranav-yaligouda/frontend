@@ -122,7 +122,7 @@ const HotelDashboardInner: React.FC = () => {
       try {
         const token = localStorage.getItem("athani_token");
         if (!token) return;
-        const api = await import("@/utils/hotelApi");
+        const api = await import("@/api/hotelApi");
         if (hotel && hotel._id) {
           const dishesData = await api.getMyDishes(token);
           setDishes(Array.isArray(dishesData.dishes) ? dishesData.dishes : dishesData);
@@ -140,7 +140,7 @@ const HotelDashboardInner: React.FC = () => {
   try {
     const token = localStorage.getItem("athani_token");
     if (!token) throw new Error("Not authenticated");
-    const { addDish, getMyDishes } = await import("@/utils/hotelApi");
+    const { addDish, getMyDishes } = await import("@/api/hotelApi");
     await addDish(token, formData);
     const updated = await getMyDishes(token);
     setDishes(Array.isArray(updated.dishes) ? updated.dishes : updated);
@@ -219,7 +219,7 @@ const HotelDashboardInner: React.FC = () => {
           try {
             const token = localStorage.getItem('athani_token');
             if (!token) throw new Error('Not authenticated');
-            const api = await import('@/utils/hotelApi');
+            const api = await import('@/api/hotelApi');
             await api.updateMyHotel(token, formData);
             await refreshHotel();
             toast({ title: 'Hotel info saved', description: 'Your hotel profile has been updated.' });
@@ -271,7 +271,7 @@ const HotelDashboardInner: React.FC = () => {
     try {
       const token = localStorage.getItem("athani_token");
       if (!token) throw new Error("Not authenticated");
-      const { updateMyHotel, getMyHotel } = await import("@/utils/hotelApi");
+      const { updateMyHotel, getMyHotel } = await import("@/api/hotelApi");
       await updateMyHotel(token, hotelEdit);
       const refreshed = await getMyHotel(token);
       setHotel(refreshed);

@@ -38,7 +38,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 
 // No more mock users: use real API
-import * as authApi from '@/utils/authApi';
+import * as authApi from '@/api/authApi';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);

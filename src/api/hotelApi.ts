@@ -1,5 +1,5 @@
 // Utility for hotel manager dish APIs
-import axios from 'axios';
+import API from './index';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 if (!API_BASE) {
@@ -8,14 +8,14 @@ if (!API_BASE) {
 
 // Fetch a single hotel by id (public info)
 export async function getHotelById(hotelId: string) {
-  const res = await axios.get(`${API_BASE}/hotels/${hotelId}`);
-  return res.data;
+  const { data } = await API.get(`/hotels/${hotelId}`);
+  return data;
 }
 
 // Fetch all hotels (with their dishes) for homepage display
 export async function getAllHotels() {
-  const res = await axios.get(`${API_BASE}/hotels`);
-  return res.data;
+  const { data } = await API.get('/hotels');
+  return data;
 }
 
 export interface DishPayload {
@@ -31,10 +31,9 @@ export interface DishPayload {
 } // New categorization structure
 
 // Accepts FormData for dish creation (required for image/file upload)
-export async function addDish(token: string, formData: FormData) {
-  const headers = { Authorization: `Bearer ${token}` };
-  const res = await axios.post(`${API_BASE}/dishes`, formData, { headers });
-  return res.data;
+export async function addDish(formData: FormData) {
+  const { data } = await API.post('/dishes', formData);
+  return data;
 }
 
 // Fetch all dishes (public, paginated, filterable)
@@ -54,34 +53,27 @@ export async function getAllDishes(params: {
   if (params.mealType) searchParams.append('mealType', params.mealType);
   if (params.cuisineType) searchParams.append('cuisineType', params.cuisineType);
   const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
-  const res = await axios.get(`${API_BASE}/dishes${query}`);
-  return res.data;
+  const { data } = await API.get(`/dishes${query}`);
+  return data;
 }
 
-export async function getMyDishes(token: string) {
-  // Returns all dishes for the logged-in hotel manager with new fields
-  const res = await axios.get(`${API_BASE}/dishes/mine`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+export async function getMyDishes() {
+  const { data } = await API.get('/dishes/mine');
+  return data;
 }
 
 // For customer view: fetch dishes by hotel ID (public)
 export async function getDishesByHotelId(hotelId: string) {
-  const res = await axios.get(`${API_BASE}/dishes/hotel/${hotelId}`);
-  return res.data;
+  const { data } = await API.get(`/dishes/hotel/${hotelId}`);
+  return data;
 }
 
-export async function getMyHotel(token: string) {
-  const res = await axios.get(`${API_BASE}/hotels/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+export async function getMyHotel() {
+  const { data } = await API.get('/hotels/me');
+  return data;
 }
 
-export async function updateMyHotel(token: string, data: any) {
-  const res = await axios.patch(`${API_BASE}/hotels/me`, data, {
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-  });
-  return res.data;
+export async function updateMyHotel(data: Record<string, unknown>) {
+  const { data: updated } = await API.patch('/hotels/me', data);
+  return updated;
 }

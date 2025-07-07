@@ -27,7 +27,7 @@ import { useAuth, UserRole } from "@/context/AuthContext";
 import { Order } from "@/data/models";
 import { toast } from "sonner";
 import RouteMap from "@/components/delivery/RouteMap";
-import OrderProcessingService from "@/services/OrderProcessingService";
+import OrderProcessingService from "@/api/order";
 
 const Deliveries = () => {
   const { user, hasRole } = useAuth();

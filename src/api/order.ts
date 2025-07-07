@@ -1,10 +1,9 @@
-import API from './api';
-import type { Order } from '../types/Order';
+import API from './index';
+import type { Order } from '../types/order';
 
 import io from 'socket.io-client';
 import type { Socket } from 'socket.io-client';
 
-const API_BASE = '/api/v1/';
 let socket: ReturnType<typeof io> | null = null;
 
 /**
@@ -67,7 +66,7 @@ export class OrderProcessingService {
    * 4. Calculate delivery route
    * 5. Update order with route
    */
-  static async processOrder(orderData: any) {
+  static async processOrder(orderData: unknown) {
     try {
       const response = await API.post('/orders', orderData);
       if (response.data && response.data.success) {
@@ -75,11 +74,14 @@ export class OrderProcessingService {
       } else {
         throw new Error(response.data.error || 'Order processing failed');
       }
-    } catch (error: any) {
-      console.error('Error processing order:', error);
-      if (error.response && error.response.data && error.response.data.error) {
-        throw new Error(error.response.data.error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Error processing order:', error.message);
+      } else {
+        console.error('Unknown error processing order:', error);
       }
+      // Optionally handle axios error shape here
+      // if (axios.isAxiosError(error) && error.response?.data?.error) { ... }
       throw error;
     }
   }
@@ -100,10 +102,11 @@ export class OrderProcessingService {
       } else {
         throw new Error(response.data.error || 'Order pickup verification failed');
       }
-    } catch (error: any) {
-      console.error('Error verifying order pickup:', error);
-      if (error.response && error.response.data && error.response.data.error) {
-        throw new Error(error.response.data.error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Error verifying order pickup:', error.message);
+      } else {
+        console.error('Unknown error verifying order pickup:', error);
       }
       throw error;
     }
@@ -132,10 +135,11 @@ else if (typeof params.pageSize === 'number') query.append('pageSize', String(pa
       } else {
         throw new Error(response.data.error || 'Failed to fetch orders');
       }
-    } catch (error: any) {
-      console.error('Error fetching orders:', error);
-      if (error.response && error.response.data && error.response.data.error) {
-        throw new Error(error.response.data.error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Error fetching orders:', error.message);
+      } else {
+        console.error('Unknown error fetching orders:', error);
       }
       throw error;
     }
@@ -163,10 +167,11 @@ else if (typeof params.pageSize === 'number') query.append('pageSize', String(pa
       } else {
         throw new Error(response.data.error || 'Failed to fetch available orders');
       }
-    } catch (error: any) {
-      console.error('Error fetching available orders:', error);
-      if (error.response && error.response.data && error.response.data.error) {
-        throw new Error(error.response.data.error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Error fetching available orders:', error.message);
+      } else {
+        console.error('Unknown error fetching available orders:', error);
       }
       throw error;
     }
@@ -199,10 +204,11 @@ else if (typeof params.pageSize === 'number') query.append('pageSize', String(pa
       } else {
         throw new Error(response.data.error || 'Failed to update order status');
       }
-    } catch (error: any) {
-      console.error('Error updating order status:', error);
-      if (error.response && error.response.data && error.response.data.error) {
-        throw new Error(error.response.data.error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Error updating order status:', error.message);
+      } else {
+        console.error('Unknown error updating order status:', error);
       }
       throw error;
     }

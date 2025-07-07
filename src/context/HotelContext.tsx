@@ -32,7 +32,7 @@ export const HotelProvider = ({ children }: { children: ReactNode }) => {
     try {
       const token = localStorage.getItem('athani_token');
       if (!token) throw new Error('No token');
-      const { getMyHotel } = await import('@/utils/hotelApi');
+      const { getMyHotel } = await import('@/api/hotelApi');
       const data = await getMyHotel(token);
       setHotel(data);
     } catch (err) {

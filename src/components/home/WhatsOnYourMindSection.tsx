@@ -12,7 +12,7 @@ import { DISH_CATEGORIES, MEAL_TYPE_IMAGES } from "@/constants/dishCategorizatio
 // };
 
 import React, { useState, useMemo, useEffect } from "react";
-import type { Dish } from "@/types/Dish";
+import type { Dish } from "@/types/dish";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
@@ -53,7 +53,7 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
         setFilteredDishes([]);
         if (!selectedMealType) return;
         // Import getAllDishes directly
-        const { getAllDishes } = await import('@/utils/hotelApi');
+        const { getAllDishes } = await import('@/api/hotelApi');
         const params: any = { mealType: selectedMealType };
         if (selectedSubCategory) params.category = selectedSubCategory;
         // Optionally add pagination (e.g., page: 1, limit: 12)

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getMyStore } from '@/utils/storeApi';
+import { getMyStore } from '@/api/storeApi';
 
 export interface Store {
   _id: string;

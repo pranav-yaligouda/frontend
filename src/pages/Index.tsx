@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { Dish } from "@/types/Dish";
+import type { Dish } from "@/types/dish";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,7 +37,7 @@ const Index = () => {
     const fetchAll = async () => {
       setIsLoading(true);
       try {
-        const { getAllHotels } = await import('@/utils/hotelApi');
+        const { getAllHotels } = await import('@/api/hotelApi');
         const hotelsResponse = await getAllHotels();
         let hotelsData: any[] = [];
         if (hotelsResponse && hotelsResponse.success) {

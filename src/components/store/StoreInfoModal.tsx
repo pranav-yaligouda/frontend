@@ -4,12 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import LocationInputWithMap from '../ui/LocationInputWithMap';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { PRODUCT_CATEGORIES } from '@/constants/productCategorization';
 
 const WEEKDAYS = [
   'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-];
-const CATEGORY_OPTIONS = [
-  'Fruits', 'Vegetables', 'Grocery', 'Dairy', 'Household', 'Stationary', 'Bakery', 'Meat', 'Beverages', 'Other'
 ];
 
 export interface StoreInfo {
@@ -59,7 +57,7 @@ const StoreInfoModal: React.FC<StoreInfoModalProps> = ({ open, onSubmit, initial
     setForm(f => ({ ...f, address: addr.addressLine, location: addr.coordinates || f.location }));
   };
 
-  const handleTimingChange = (day: string, key: 'open' | 'close' | 'holiday', value: any) => {
+  const handleTimingChange = (day: string, key: 'open' | 'close' | 'holiday', value: string | boolean) => {
     setForm(f => ({
       ...f,
       timings: {
@@ -93,13 +91,16 @@ const StoreInfoModal: React.FC<StoreInfoModalProps> = ({ open, onSubmit, initial
           <form onSubmit={handleSubmit} className="space-y-6">
             {step === 1 && (
               <div className="space-y-4">
-                <Input
-                  label="Store Name"
-                  value={form.name}
-                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  readOnly={!!initial?.name}
-                  className={initial?.name ? "w-full bg-gray-100 cursor-not-allowed" : "w-full"}
-                />
+                <div>
+                  <label htmlFor="store-name" className="font-semibold">Store Name</label>
+                  <Input
+                    id="store-name"
+                    value={form.name}
+                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                    readOnly={!!initial?.name}
+                    className={initial?.name ? "w-full bg-gray-100 cursor-not-allowed" : "w-full"}
+                  />
+                </div>
                 <LocationInputWithMap
                   value={{ addressLine: form.address, coordinates: form.location }}
                   onChange={handleLocationChange}
@@ -159,7 +160,7 @@ const StoreInfoModal: React.FC<StoreInfoModalProps> = ({ open, onSubmit, initial
                     value={form.categories}
                     onChange={handleCategoryChange}
                   >
-                    {CATEGORY_OPTIONS.map(cat => (
+                    {PRODUCT_CATEGORIES.map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>

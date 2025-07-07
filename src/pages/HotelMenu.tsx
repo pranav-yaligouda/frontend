@@ -64,7 +64,7 @@ const HotelMenu = () => {
         let dishData: any[] = [];
         let hotelData = null;
         try {
-          const { getDishesByHotelId } = await import('@/utils/hotelApi');
+          const { getDishesByHotelId } = await import('@/api/hotelApi');
       const dishesRes = await getDishesByHotelId(id);
           if (dishesRes && dishesRes.success) {
             dishData = Array.isArray(dishesRes.data) ? dishesRes.data : [];
@@ -94,7 +94,7 @@ const normalizedDishes = dishData
 setDishes(normalizedDishes);
         try {
           // Best practice: fetch hotel info by id for full details (including image)
-          const { getHotelById } = await import('@/utils/hotelApi');
+          const { getHotelById } = await import('@/api/hotelApi');
           const hotelRes = await getHotelById(id);
           if (hotelRes && hotelRes.success) {
             setHotel(hotelRes.data);

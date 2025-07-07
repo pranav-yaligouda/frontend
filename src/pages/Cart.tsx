@@ -9,7 +9,7 @@ import LocationInputWithMap from "@/components/ui/LocationInputWithMap";
 // import LocationInput from "@/components/ui/locationInput"; // replaced with Google Maps version
 import { toast } from "sonner";
 import { createOrder, Product, products } from "@/data/models";
-import { OrderProcessingService } from "@/services/OrderProcessingService";
+import { OrderProcessingService } from "@/api/order";
 
 const Cart = () => {
   const { items, removeItem, updateQuantity, clearCart, getTotal, getStores } = useCart();
@@ -89,7 +89,7 @@ const Cart = () => {
         if (isHotel) {
           // Inline hotel info fetch logic
           try {
-            const { getHotelById } = await import('@/utils/hotelApi');
+            const { getHotelById } = await import('@/api/hotelApi');
             const hotelRes = await getHotelById(store.storeId);
             if (!hotelRes || !hotelRes.success || !hotelRes.data) {
               toast.error("Could not fetch hotel info for pickup address");

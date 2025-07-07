@@ -3,10 +3,10 @@ import Loader from "@/components/ui/Loader";
 import { Link } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import OrderCard from "@/components/order/OrderCard";
-import { Order, OrderStatus } from "@/types/Order";
+import { Order, OrderStatus } from "@/types/order";
 import { useAuth, UserRole } from "@/context/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
-import OrderProcessingService from "@/services/OrderProcessingService";
+import OrderProcessingService from "@/api/order";
 
 // Toast component OUTSIDE Orders to avoid hook order issues
 const Toast = ({ message, onClose }: { message: string, onClose: () => void }) => (
