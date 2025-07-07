@@ -13,7 +13,7 @@ const StoreCard = ({ store }: StoreCardProps) => {
     if (store.timings && typeof store.timings === "object") {
       return Object.entries(store.timings).map(([day, value]) => ({
         day,
-        ...value
+        ...(typeof value === 'object' && value ? value : {})
       }));
     }
     return [];

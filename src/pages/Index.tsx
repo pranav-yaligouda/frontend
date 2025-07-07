@@ -19,6 +19,7 @@ import ProductCard from "@/components/product/ProductCard";
 import type { Product } from "@/types/product";
 import type { Store } from "@/types/store";
 
+
 const PRODUCT_CATEGORIES = [
   'Vegetables', 'Fruits', 'Groceries', 'Medicines', 'Dairy', 'Household', 'Stationary'
 ];
@@ -53,7 +54,7 @@ const Index = () => {
       try {
         const { getAllHotels } = await import('@/api/hotelApi');
         const hotelsResponse = await getAllHotels();
-        let hotelsData: any[] = [];
+        let hotelsData: Hotel[] = [];
         if (hotelsResponse && hotelsResponse.success) {
           // Support paginated response shape
           if (hotelsResponse.data && Array.isArray(hotelsResponse.data.items)) {
@@ -185,7 +186,7 @@ const Index = () => {
     const fetchProducts = async () => {
       try {
         setGroceryLoading(true);
-        const params: any = {};
+        const params: Record<string, string | number> = {};
         if (selectedGroceryStore) params.storeId = selectedGroceryStore;
         if (selectedGroceryCategory) params.category = selectedGroceryCategory;
         if (grocerySearch) params.search = grocerySearch;

@@ -38,7 +38,7 @@ const ProductList: React.FC<ProductListProps> = ({ storeId, categories, onEdit }
     if (!window.confirm('Delete this product?')) return;
     try {
       await deleteProduct(id);
-      toast({ title: 'Product deleted', variant: 'success' });
+      toast({ title: 'Product deleted' });
       fetchProducts();
     } catch (error) {
       // Error toast is handled globally

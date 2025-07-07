@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import LocationInputWithMap from "@/components/ui/LocationInputWithMap";
 // import LocationInput from "@/components/ui/locationInput"; // replaced with Google Maps version
 import { toast } from "sonner";
-import { createOrder, Product, products } from "@/data/models";
+import { createOrder, Product } from "@/data/models";
 import { OrderProcessingService } from "@/api/order";
 
 const Cart = () => {

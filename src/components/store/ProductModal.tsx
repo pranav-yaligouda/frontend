@@ -19,13 +19,13 @@ interface ProductModalProps {
 }
 
 const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, initial, categories, storeId, storeName, onSave }) => {
-  const [form, setForm] = useState<Partial<Product>>(initial || { available: true });
+  const [form, setForm] = useState<Partial<Product>>(initial || {});
   const [loading, setLoading] = useState(false);
   const [stockUnit, setStockUnit] = useState<string>(initial?.unit || 'pieces');
   const isEdit = Boolean(initial && initial._id);
 
   useEffect(() => {
-    setForm(initial || { available: true });
+    setForm(initial || {});
     setStockUnit(initial?.unit || 'pieces');
   }, [initial, open]);
 
