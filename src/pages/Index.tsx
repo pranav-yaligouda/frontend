@@ -13,6 +13,15 @@ import { toast } from "sonner";
 
 import WhatsOnYourMindSection from "@/components/home/WhatsOnYourMindSection";
 import HomeCategoryTabs from "@/components/home/HomeCategoryTabs";
+import { getAllStores } from '@/api/storeApi';
+import { getProducts } from '@/api/product';
+import ProductCard from "@/components/product/ProductCard";
+import type { Product } from "@/types/product";
+import type { Store } from "@/types/store";
+
+const PRODUCT_CATEGORIES = [
+  'Vegetables', 'Fruits', 'Groceries', 'Medicines', 'Dairy', 'Household', 'Stationary'
+];
 
 const Index = () => {
   type Hotel = {
@@ -28,9 +37,15 @@ const Index = () => {
   };
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [normalizedDishes, setNormalizedDishes] = useState<Dish[]>([]);
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { addItem } = useCart();
+
+  const [groceryStores, setGroceryStores] = useState<Store[]>([]);
+  const [groceryProducts, setGroceryProducts] = useState<Product[]>([]);
+  const [groceryLoading, setGroceryLoading] = useState(false);
+  const [selectedGroceryCategory, setSelectedGroceryCategory] = useState('');
+  const [selectedGroceryStore, setSelectedGroceryStore] = useState<string | null>(null);
+  const [grocerySearch, setGrocerySearch] = useState('');
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -111,18 +126,6 @@ const Index = () => {
     fetchAll();
   }, []);
 
-  useEffect(() => {
-    const fetchFeaturedProducts = async () => {
-      try {
-        const products = await getFeaturedProducts();
-        setFeaturedProducts(products);
-      } catch (error) {
-        console.error("Failed to fetch featured products:", error);
-      }
-    };
-    fetchFeaturedProducts();
-  }, []);
-
   const handleAddDishToCart = (dish: Dish) => {
     // Defensive: Only allow if both dish.id and dish.hotelId are valid
     if (!dish.id || !dish.hotelId || dish.id === 'undefined' || dish.hotelId === 'undefined') {
@@ -160,6 +163,44 @@ const Index = () => {
       sectionRefs[catKey]?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
   };
+
+  // Fetch grocery stores on mount
+  useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        setGroceryLoading(true);
+        const res = await getAllStores();
+        setGroceryStores(res.data.items || []);
+      } catch (err) {
+        toast.error('Failed to fetch stores');
+      } finally {
+        setGroceryLoading(false);
+      }
+    };
+    fetchStores();
+  }, []);
+
+  // Fetch grocery products when filters change
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setGroceryLoading(true);
+        const params: any = {};
+        if (selectedGroceryStore) params.storeId = selectedGroceryStore;
+        if (selectedGroceryCategory) params.category = selectedGroceryCategory;
+        if (grocerySearch) params.search = grocerySearch;
+        params.page = 1;
+        params.limit = 20;
+        const res = await getProducts(params);
+        setGroceryProducts(res.data.data.items || []);
+      } catch (err) {
+        toast.error('Failed to fetch products');
+      } finally {
+        setGroceryLoading(false);
+      }
+    };
+    fetchProducts();
+  }, [selectedGroceryStore, selectedGroceryCategory, grocerySearch]);
 
   return (
     <div className="pb-16 bg-gradient-to-b from-primary-100 via-primary-50 to-white min-h-screen">
@@ -334,44 +375,71 @@ const Index = () => {
               <TabsContent value="grocery" className="space-y-12">
                 {/* Search Bar for Grocery Shopping (all screens) */}
                 <div className="w-full mb-4">
-                  <form className="flex items-center rounded-full bg-white shadow px-3 py-2 border border-green-200">
+                  <form
+                    className="flex items-center rounded-full bg-white shadow px-3 py-2 border border-green-200"
+                    onSubmit={e => { e.preventDefault(); }}
+                  >
                     <input
                       type="search"
                       placeholder="Search for grocery products or stores..."
                       className="flex-1 bg-transparent outline-none px-2 text-sm"
                       style={{ minWidth: 0 }}
+                      value={grocerySearch}
+                      onChange={e => setGrocerySearch(e.target.value)}
                     />
                     <button type="submit" className="ml-2 px-3 py-1.5 bg-green-600 text-white rounded-full text-sm font-semibold">Search</button>
                   </form>
                 </div>
-                {/* Grocery Perfection Section */}
-                <PerfectionSection
-                  title="Perfect Grocery Shopping"
-                  description="Get the freshest groceries and daily essentials delivered right to your home with unmatched quality and convenience."
-                  bgColor="bg-gradient-to-r from-green-50 to-emerald-50"
-                  features={[
-                    {
-                      icon: "check",
-                      title: "Fresh & Quality",
-                      description: "Hand-picked fresh produce and quality products every time"
-                    },
-                    {
-                      icon: "truck",
-                      title: "Express Delivery",
-                      description: "Same-day delivery for all your grocery needs"
-                    },
-                    {
-                      icon: "clock",
-                      title: "24/7 Available",
-                      description: "Order anytime, we're always here to serve you"
-                    },
-                    {
-                      icon: "shield",
-                      title: "Best Prices",
-                      description: "Competitive pricing with regular offers and discounts"
-                    }
-                  ]}
-                />
+                {/* Category Filter */}
+                <div className="flex gap-2 overflow-x-auto py-2">
+                  <button
+                    className={`px-4 py-2 rounded-full ${selectedGroceryCategory === '' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                    onClick={() => setSelectedGroceryCategory('')}
+                  >
+                    All
+                  </button>
+                  {PRODUCT_CATEGORIES.map(cat => (
+                    <button
+                      key={cat}
+                      className={`px-4 py-2 rounded-full ${selectedGroceryCategory === cat ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                      onClick={() => setSelectedGroceryCategory(cat)}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+                {/* Store Filter */}
+                <select
+                  value={selectedGroceryStore || ''}
+                  onChange={e => setSelectedGroceryStore(e.target.value || null)}
+                  className="border rounded px-2 py-1 mb-4"
+                >
+                  <option value="">All Stores</option>
+                  {groceryStores.map(store => (
+                    <option key={store._id} value={store._id}>{store.name}</option>
+                  ))}
+                </select>
+                {/* Product Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {groceryLoading ? (
+                    Array.from({ length: 8 }).map((_, i) => <div key={i} className="bg-gray-100 rounded-xl h-48 animate-pulse" />)
+                  ) : groceryProducts.length === 0 ? (
+                    <div className="col-span-full text-center text-gray-400 py-8">No products found.</div>
+                  ) : (
+                    groceryProducts.map(product => (
+                      <ProductCard key={product._id} product={product} />
+                    ))
+                  )}
+                </div>
+                {/* Store Grid */}
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold mb-2">Popular Stores</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {groceryStores.map(store => (
+                      <StoreCard key={store._id} store={store} />
+                    ))}
+                  </div>
+                </div>
               </TabsContent>
             </Tabs>
           </div>

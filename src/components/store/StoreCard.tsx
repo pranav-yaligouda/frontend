@@ -1,6 +1,5 @@
-
 import { Link } from "react-router-dom";
-import { Store } from "@/data/models";
+import type { Store } from "@/types/store";
 import { MapPin, Clock, ShoppingBag } from "lucide-react";
 
 interface StoreCardProps {
@@ -8,11 +7,24 @@ interface StoreCardProps {
 }
 
 const StoreCard = ({ store }: StoreCardProps) => {
+  // Helper to normalize timings/openingHours to an array
+  const getOpeningHoursArray = () => {
+    if (Array.isArray(store.openingHours)) return store.openingHours;
+    if (store.timings && typeof store.timings === "object") {
+      return Object.entries(store.timings).map(([day, value]) => ({
+        day,
+        ...value
+      }));
+    }
+    return [];
+  };
+
   // Get current day and check if store is open
   const getCurrentDayOpeningHours = () => {
     const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const today = days[new Date().getDay()];
-    return store.openingHours.find(oh => oh.day === today);
+    const openingHoursArr = getOpeningHoursArray();
+    return openingHoursArr.find(oh => oh.day === today);
   };
 
   const todayHours = getCurrentDayOpeningHours();
@@ -36,7 +48,7 @@ const StoreCard = ({ store }: StoreCardProps) => {
   };
 
   return (
-    <Link to={`/store/${store.id}`}>
+    <Link to={`/store/${store._id || store.id}`}>
       <div className="overflow-hidden transition-all bg-white border rounded-lg hover:shadow-md hover:border-primary">
         <div className="relative h-40 overflow-hidden bg-gray-100">
           <img

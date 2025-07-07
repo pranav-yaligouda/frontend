@@ -17,3 +17,9 @@ export async function updateMyStore(data: Record<string, unknown>) {
   return updated;
 }
 
+// Fetch all stores (optionally with search, pagination)
+export async function getAllStores(params?: { search?: string; page?: number; limit?: number }) {
+  const { data } = await API.get('/stores', { params });
+  return data;
+}
+
