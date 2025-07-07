@@ -10,25 +10,25 @@ import { StoreProvider } from '@/context/StoreContext';
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
-import React, { Suspense, lazy } from "react";
+import * as React from "react";
 import Loader from "@/components/ui/Loader";
 
-const Index = lazy(() => import("./pages/Index"));
-const Login = lazy(() => import("./pages/Login"));
-const Category = lazy(() => import("./pages/Category"));
-const Product = lazy(() => import("./pages/Product"));
-const Store = lazy(() => import("./pages/Store"));
-const Cart = lazy(() => import("./pages/Cart"));
-const Orders = lazy(() => import("./pages/Orders"));
-const OrderDetails = lazy(() => import("./pages/OrderDetails"));
+const Index = React.lazy(() => import("./pages/Index"));
+const Login = React.lazy(() => import("./pages/Login"));
+const Category = React.lazy(() => import("./pages/Category"));
+const Product = React.lazy(() => import("./pages/Product"));
+const Store = React.lazy(() => import("./pages/Store"));
+const Cart = React.lazy(() => import("./pages/Cart"));
+const Orders = React.lazy(() => import("./pages/Orders"));
+const OrderDetails = React.lazy(() => import("./pages/OrderDetails"));
 
-const StoreDashboard = lazy(() => import("./pages/StoreDashboard"));
-const HotelDashboard = lazy(() => import("./pages/HotelDashboard"));
-const HotelMenu = lazy(() => import("./pages/HotelMenu"));
-const Deliveries = lazy(() => import("./pages/Deliveries"));
-const Search = lazy(() => import("./pages/Search"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const Profile = lazy(() => import("./pages/Profile"));
+const StoreDashboard = React.lazy(() => import("./pages/StoreDashboard"));
+const HotelDashboard = React.lazy(() => import("./pages/HotelDashboard"));
+const HotelMenu = React.lazy(() => import("./pages/HotelMenu"));
+const Deliveries = React.lazy(() => import("./pages/Deliveries"));
+const Search = React.lazy(() => import("./pages/Search"));
+const NotFound = React.lazy(() => import("./pages/NotFound"));
+const Profile = React.lazy(() => import("./pages/Profile"));
 
 const queryClient = new QueryClient();
 
@@ -44,7 +44,7 @@ const App = () => (
               <div className="flex flex-col min-h-screen">
                 <Navbar />
                 <main className="flex-grow">
-                  <Suspense fallback={<Loader />}>
+                  <React.Suspense fallback={<Loader />}>
                     <Routes>
                       <Route path="/" element={<Index />} />
                       <Route path="/login" element={<Login />} />
@@ -62,7 +62,7 @@ const App = () => (
                       <Route path="/search" element={<Search />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
-                  </Suspense>
+                  </React.Suspense>
                 </main>
                 <Footer />
               </div>

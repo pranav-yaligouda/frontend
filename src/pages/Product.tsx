@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import * as React from "react";
 import Loader from "@/components/ui/Loader";
 import { useParams, Link } from "react-router-dom";
 import { ChevronLeft, ShoppingCart, Minus, Plus } from "lucide-react";
@@ -10,13 +10,13 @@ import { toast } from "sonner";
 
 const Product = () => {
   const { id } = useParams<{ id: string }>();
-  const [product, setProduct] = useState<ProductType | null>(null);
-  const [quantity, setQuantity] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAdding, setIsAdding] = useState(false);
+  const [product, setProduct] = React.useState<ProductType | null>(null);
+  const [quantity, setQuantity] = React.useState(1);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [isAdding, setIsAdding] = React.useState(false);
   const { addItem } = useCart();
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!id) return;
     setIsLoading(true);
     getProductById(id)

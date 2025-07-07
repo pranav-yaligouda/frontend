@@ -1,6 +1,6 @@
+import * as React from "react";
 import { Input } from "@/components/ui/input";
 import { MapPin } from "lucide-react";
-import { useEffect, useState } from "react";
 
 interface LocationInputProps {
   label?: string;
@@ -19,12 +19,12 @@ const LocationInput = ({
   placeholder = "Enter your location",
   disabled = false,
 }: LocationInputProps) => {
-  const [address, setAddress] = useState(value);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [address, setAddress] = React.useState(value);
+  const [suggestions, setSuggestions] = React.useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = React.useState(false);
 
   // Mock suggestions based on input
-  useEffect(() => {
+  React.useEffect(() => {
     if (address.length > 2) {
       // These would come from a real geocoding service
       const mockSuggestions = [

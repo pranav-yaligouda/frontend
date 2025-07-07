@@ -1,5 +1,4 @@
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import * as React from "react";
 
 // User roles
 // Unified user roles (matches backend exactly)
@@ -34,18 +33,18 @@ interface AuthContextType {
 }
 
 // Create auth context
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
 
 
 // No more mock users: use real API
 import * as authApi from '@/api/authApi';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = React.useState<User | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   // Check for saved user on initial load
-  useEffect(() => {
+  React.useEffect(() => {
     const savedUser = localStorage.getItem('athani_user');
     try {
       // Only parse if not undefined/null and is valid JSON
@@ -141,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
+  const context = React.useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }

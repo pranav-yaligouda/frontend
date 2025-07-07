@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import * as React from "react";
 import Loader from "@/components/ui/Loader";
 import { Link } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
@@ -18,16 +18,16 @@ const Toast = ({ message, onClose }: { message: string, onClose: () => void }) =
 
 const Orders = () => {
   const { user } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalPages, setTotalPages] = useState(1);
-  const [status, setStatus] = useState<OrderStatus | 'ALL'>('ALL');
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [orders, setOrders] = React.useState<Order[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(10);
+  const [totalPages, setTotalPages] = React.useState(1);
+  const [status, setStatus] = React.useState<OrderStatus | 'ALL'>('ALL');
+  const [toastMsg, setToastMsg] = React.useState<string | null>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!user) return;
     setIsLoading(true);
     setError(null);
@@ -57,7 +57,7 @@ const Orders = () => {
   }, [user, page, pageSize, status]);
 
   // Robust real-time: fetch business IDs for hotel_manager/store_owner
-  useEffect(() => {
+  React.useEffect(() => {
     if (!user) return;
     let unsubscribed = false;
     const handleOrderUpdate = (order: Order) => {
@@ -104,7 +104,7 @@ const Orders = () => {
     };
   }, [user]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (toastMsg) {
       const timer = setTimeout(() => setToastMsg(null), 4000);
       return () => clearTimeout(timer);

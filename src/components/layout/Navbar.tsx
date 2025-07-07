@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, User, Search, PhoneCall } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,7 @@ const Navbar = () => {
   const { user, logout, isAuthenticated, hasRole } = useAuth();
 
   const { getItemCount } = useCart();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = React.useState("");
   const navigate = useNavigate();
 
   const handleSearch = (e: React.FormEvent) => {

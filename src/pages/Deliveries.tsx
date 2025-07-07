@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import * as React from "react";
 import { Link } from "react-router-dom";
 import { MapPin, Package, Check, Map, Clock, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,12 +31,12 @@ import OrderProcessingService from "@/api/order";
 
 const Deliveries = () => {
   const { user, hasRole } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [selectedView, setSelectedView] = useState<"list" | "map">("list");
-  const [isLoading, setIsLoading] = useState(true);
+  const [orders, setOrders] = React.useState<Order[]>([]);
+  const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
+  const [selectedView, setSelectedView] = React.useState<"list" | "map">("list");
+  const [isLoading, setIsLoading] = React.useState(true);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!user || !hasRole([UserRole.DELIVERY_AGENT])) return;
 
     // In a real app, fetch deliveries for this agent

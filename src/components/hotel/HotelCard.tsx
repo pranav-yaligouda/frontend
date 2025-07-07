@@ -1,4 +1,4 @@
-
+import * as React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Star, Clock, MapPin } from "lucide-react";
@@ -11,7 +11,7 @@ interface Hotel {
   rating?: number;
   deliveryTime?: string;
   cuisine?: string;
-  location?: string | { address?: string; [key: string]: any };
+  location?: string | { address?: string; [key: string]: unknown };
   dishes: {
     id: string;
     name: string;

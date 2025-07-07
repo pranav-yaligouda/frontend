@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import * as React from "react";
 import { getMyStore } from '@/api/storeApi';
 
 export interface Store {
@@ -22,11 +22,11 @@ interface StoreContextType {
   loading: boolean;
 }
 
-const StoreContext = createContext<StoreContextType | undefined>(undefined);
+const StoreContext = React.createContext<StoreContextType | undefined>(undefined);
 
-export const StoreProvider = ({ children }: { children: ReactNode }) => {
-  const [store, setStore] = useState<Store | null>(null);
-  const [loading, setLoading] = useState(true);
+export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
+  const [store, setStore] = React.useState<Store | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
   const refreshStore = async () => {
     setLoading(true);
@@ -43,7 +43,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     refreshStore();
   }, []);
 
@@ -55,7 +55,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useStore = () => {
-  const ctx = useContext(StoreContext);
+  const ctx = React.useContext(StoreContext);
   if (!ctx) throw new Error('useStore must be used within StoreProvider');
   return ctx;
 };

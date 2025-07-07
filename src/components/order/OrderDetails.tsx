@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import * as React from "react";
 import { Link } from "react-router-dom";
 import { 
   ChevronLeft,
@@ -25,10 +25,10 @@ interface OrderDetailsProps {
 }
 
 const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
-  const [order, setOrder] = useState<Order | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [order, setOrder] = React.useState<Order | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchOrderDetails = async () => {
       setIsLoading(true);
       try {

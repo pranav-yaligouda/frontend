@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import * as React from "react";
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -46,17 +46,17 @@ export const DishModal = ({ open, onSubmit, initial, loading, onClose } : {
   onClose?: () => void;
 }) => {
   // New categorization states
-  const [mealType, setMealType] = useState(initial?.mealType || '');
-  const [cuisineType, setCuisineType] = useState(initial?.cuisineType || '');
-  const [category, setCategory] = useState(initial?.category || '');
-  const [dishName, setDishName] = useState(initial?.dishName || '');
-  const [dietaryTags, setDietaryTags] = useState<string[]>(initial?.dietaryTags || []);
-  const [imagePreview, setImagePreview] = useState<string | null>(initial?.image ?? null);
-  const [customDishName, setCustomDishName] = useState(''); // for free text entry
+  const [mealType, setMealType] = React.useState(initial?.mealType || '');
+  const [cuisineType, setCuisineType] = React.useState(initial?.cuisineType || '');
+  const [category, setCategory] = React.useState(initial?.category || '');
+  const [dishName, setDishName] = React.useState(initial?.dishName || '');
+  const [dietaryTags, setDietaryTags] = React.useState<string[]>(initial?.dietaryTags || []);
+  const [imagePreview, setImagePreview] = React.useState<string | null>(initial?.image ?? null);
+  const [customDishName, setCustomDishName] = React.useState(''); // for free text entry
 
   // Dish search state
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showDishDropdown, setShowDishDropdown] = useState(false);
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [showDishDropdown, setShowDishDropdown] = React.useState(false);
   const allDishOptions = React.useMemo(() => {
   // Audit: Check for missing category-to-cuisine mappings
   const missingMappings = [];

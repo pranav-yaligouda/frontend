@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import * as React from "react";
 import { useParams, Link } from "react-router-dom";
 import ProductGrid from "@/components/product/ProductGrid";
 import type { Product } from "@/types/product";
@@ -7,11 +7,11 @@ import { ChevronLeft } from "lucide-react";
 
 const Category = () => {
   const { id } = useParams<{ id: string }>();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [category, setCategory] = useState<string>("");
+  const [products, setProducts] = React.useState<Product[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [category, setCategory] = React.useState<string>("");
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!id) return;
 
     const fetchProducts = async () => {

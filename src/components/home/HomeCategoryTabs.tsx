@@ -1,4 +1,4 @@
-import { useState } from "react";
+import * as React from "react";
 import { DISH_CATEGORIES } from "@/components/hotel/dishCategories";
 
 const CATEGORY_LABELS: Record<string, string> = {

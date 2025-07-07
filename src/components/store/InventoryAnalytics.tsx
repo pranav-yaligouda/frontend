@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import * as React from "react";
 import {
   Card,
   CardContent,
@@ -32,15 +31,15 @@ interface InventoryAnalyticsProps {
 }
 
 const InventoryAnalytics = ({ storeId, products, storeProducts }: InventoryAnalyticsProps) => {
-  const [chartData, setChartData] = useState<any[]>([]);
-  const [transactionsData, setTransactionsData] = useState<any[]>([]);
-  const [stockDistribution, setStockDistribution] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [chartData, setChartData] = React.useState<any[]>([]);
+  const [transactionsData, setTransactionsData] = React.useState<any[]>([]);
+  const [stockDistribution, setStockDistribution] = React.useState<any[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   // Colors for charts
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {

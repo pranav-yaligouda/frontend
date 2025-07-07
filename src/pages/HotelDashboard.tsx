@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useMemo } from "react";
+import * as React from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -89,23 +89,32 @@ const WEEKDAYS = [
   "Sunday",
 ];
 
+// Add after Hotel type:
+type EditableHotel = Partial<Hotel> & {
+  timings?: Record<string, { open: string; close: string; holiday: boolean }>;
+  location?: { address?: string; coordinates?: [number, number] };
+  image?: string;
+  holidays?: string[];
+  [key: string]: unknown;
+};
+
 // Only one HotelDashboard definition and export below.
 const HotelDashboardInner: React.FC = () => {
   const { user, hasRole } = useAuth();
   const { hotel, setHotel, refreshHotel, loading: hotelLoading } = useHotel();
-  const [dishes, setDishes] = useState<Dish[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [orders, setOrders] = useState<HotelOrder[]>([]);
-  const [isAddDishOpen, setIsAddDishOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<HotelOrder | null>(null);
+  const [dishes, setDishes] = React.useState<Dish[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [orders, setOrders] = React.useState<HotelOrder[]>([]);
+  const [isAddDishOpen, setIsAddDishOpen] = React.useState(false);
+  const [selectedOrder, setSelectedOrder] = React.useState<HotelOrder | null>(null);
 
   // Hotel profile state
   // Remove local hotel state, use context
-  const [isHotelModalOpen, setIsHotelModalOpen] = useState(false);
-  const [isEditHotelOpen, setIsEditHotelOpen] = useState(false);
-  const [hotelEdit, setHotelEdit] = useState<typeof hotel | null>(null);
-  const [newDish, setNewDish] = useState<Omit<Dish, 'id'>>({
+  const [isHotelModalOpen, setIsHotelModalOpen] = React.useState(false);
+  const [isEditHotelOpen, setIsEditHotelOpen] = React.useState(false);
+  const [hotelEdit, setHotelEdit] = React.useState<EditableHotel | null>(null);
+  const [newDish, setNewDish] = React.useState<Omit<Dish, 'id'>>({
     name: '',
     description: '',
     price: 0,
@@ -115,7 +124,7 @@ const HotelDashboardInner: React.FC = () => {
   });
 
   // Fetch hotel profile and dishes for hotel manager
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchDishes = async () => {
       if (!user || !hasRole([UserRole.HOTEL_MANAGER])) return;
       setLoading(true);
@@ -124,11 +133,12 @@ const HotelDashboardInner: React.FC = () => {
         if (!token) return;
         const api = await import("@/api/hotelApi");
         if (hotel && hotel._id) {
-          const dishesData = await api.getMyDishes(token);
+          const dishesData = await api.getMyDishes();
           setDishes(Array.isArray(dishesData.dishes) ? dishesData.dishes : dishesData);
         }
-      } catch (err: any) {
-        toast({ title: 'Failed to fetch dishes', description: err?.response?.data?.message || 'An error occurred.' });
+      } catch (err: unknown) {
+        const error = err as { response?: { data?: { message?: string } } };
+        toast({ title: 'Failed to fetch dishes', description: error?.response?.data?.message || 'An error occurred.' });
       } finally {
         setLoading(false);
       }
@@ -141,13 +151,14 @@ const HotelDashboardInner: React.FC = () => {
     const token = localStorage.getItem("athani_token");
     if (!token) throw new Error("Not authenticated");
     const { addDish, getMyDishes } = await import("@/api/hotelApi");
-    await addDish(token, formData);
-    const updated = await getMyDishes(token);
+    await addDish(formData);
+    const updated = await getMyDishes();
     setDishes(Array.isArray(updated.dishes) ? updated.dishes : updated);
     setIsAddDishOpen(false);
     toast({ title: 'Dish added successfully!', description: 'Your dish is now available.' });
-  } catch (err: any) {
-    toast({ title: 'Failed to add dish', description: err?.response?.data?.message || 'An error occurred.' });
+  } catch (err: unknown) {
+    const error = err as { response?: { data?: { message?: string } } };
+    toast({ title: 'Failed to add dish', description: error?.response?.data?.message || 'An error occurred.' });
   }
 };
 
@@ -175,23 +186,24 @@ const HotelDashboardInner: React.FC = () => {
   if (loading || hotelLoading) return <div className="flex items-center justify-center h-[60vh]">Loading...</div>;
 
   // Improved check: Only show modal if required fields are missing or incomplete
-  function isHotelInfoIncomplete(hotel: any): boolean {
-    if (!hotel) return true;
-    if (!hotel.name || typeof hotel.name !== 'string' || hotel.name.trim().length === 0) return true;
+  function isHotelInfoIncomplete(hotel: unknown): boolean {
+    if (!hotel || typeof hotel !== 'object' || hotel === null) return true;
+    const hotelObj = hotel as { name?: string; location?: { coordinates?: unknown[]; address?: string }; timings?: Record<string, unknown> };
+    if (!hotelObj.name || typeof hotelObj.name !== 'string' || hotelObj.name.trim().length === 0) return true;
     // Location must exist and have valid coordinates and address
-    if (!hotel.location ||
-        !Array.isArray(hotel.location.coordinates) ||
-        hotel.location.coordinates.length < 2 ||
-        typeof hotel.location.coordinates[0] !== 'number' ||
-        typeof hotel.location.coordinates[1] !== 'number' ||
-        !hotel.location.address || hotel.location.address.trim().length === 0) {
+    if (!hotelObj.location ||
+        !Array.isArray(hotelObj.location.coordinates) ||
+        hotelObj.location.coordinates.length < 2 ||
+        typeof hotelObj.location.coordinates[0] !== 'number' ||
+        typeof hotelObj.location.coordinates[1] !== 'number' ||
+        !hotelObj.location.address || hotelObj.location.address.trim().length === 0) {
       return true;
     }
     // Timings must exist and have all 7 days
     const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-    if (!hotel.timings || typeof hotel.timings !== 'object') return true;
+    if (!hotelObj.timings || typeof hotelObj.timings !== 'object') return true;
     for (const day of weekdays) {
-      const t = hotel.timings[day];
+      const t = hotelObj.timings[day] as { open?: string; close?: string; holiday?: boolean } | undefined;
       if (!t || typeof t.open !== 'string' || typeof t.close !== 'string' || typeof t.holiday !== 'boolean') {
         return true;
       }
@@ -220,11 +232,12 @@ const HotelDashboardInner: React.FC = () => {
             const token = localStorage.getItem('athani_token');
             if (!token) throw new Error('Not authenticated');
             const api = await import('@/api/hotelApi');
-            await api.updateMyHotel(token, formData);
+            await api.updateMyHotel(formData);
             await refreshHotel();
             toast({ title: 'Hotel info saved', description: 'Your hotel profile has been updated.' });
-          } catch (err: any) {
-            toast({ title: 'Failed to save hotel info', description: err?.response?.data?.message || 'An error occurred.', });
+          } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            toast({ title: 'Failed to save hotel info', description: error?.response?.data?.message || 'An error occurred.', });
           }
         }}
       />
@@ -235,21 +248,25 @@ const HotelDashboardInner: React.FC = () => {
   if (loading) return <div className="container py-8">Loading...</div>;
 
   // Hotel profile section
-  const handleHotelEditChange = (field: string, value: any) => {
-    setHotelEdit((prev: any) => ({ ...prev, [field]: value }));
+  const handleHotelEditChange = (field: keyof EditableHotel, value: unknown) => {
+    setHotelEdit(prev => prev ? { ...prev, [field]: value } : { [field]: value });
   };
 
-  const handleTimingChange = (day: string, key: string, value: any) => {
-    setHotelEdit((prev: any) => ({
+  const handleTimingChange = (day: string, key: string, value: unknown) => {
+    setHotelEdit(prev => prev ? {
       ...prev,
       timings: {
-        ...prev.timings,
+        ...(prev.timings || {}),
         [day]: {
-          ...((prev.timings && prev.timings[day]) || {}),
+          ...(prev.timings?.[day] || {}),
           [key]: value,
         },
       },
-    }));
+    } : {
+      timings: {
+        [day]: { [key]: value }
+      }
+    });
   };
 
   // If you want to support map picking, add a mapCoords state below. Remove setMapCoords if not used.
@@ -272,14 +289,15 @@ const HotelDashboardInner: React.FC = () => {
       const token = localStorage.getItem("athani_token");
       if (!token) throw new Error("Not authenticated");
       const { updateMyHotel, getMyHotel } = await import("@/api/hotelApi");
-      await updateMyHotel(token, hotelEdit);
-      const refreshed = await getMyHotel(token);
+      await updateMyHotel(hotelEdit);
+      const refreshed = await getMyHotel();
       setHotel(refreshed);
       setHotelEdit(refreshed);
       setIsEditHotelOpen(false);
       toast({ title: 'Hotel profile updated!' });
-    } catch (err: any) {
-      toast({ title: 'Failed to update hotel', description: err?.response?.data?.message || "Failed to update hotel" });
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast({ title: 'Failed to update hotel', description: error?.response?.data?.message || "Failed to update hotel" });
     }
   };
 
@@ -621,7 +639,7 @@ const HotelDashboardInner: React.FC = () => {
                     </TableCell>
                     <TableCell>₹{order.price}</TableCell>
                     <TableCell>
-                      <OrderStatusBadge status={order.status} />
+                      <OrderStatusBadge status={order.status as any} />
                     </TableCell>
                     <TableCell>
                       {order.deliveryAgent ? (
@@ -699,7 +717,7 @@ const HotelDashboardInner: React.FC = () => {
                   <p><strong>Dish:</strong> {selectedOrder.dishName}</p>
                   <p><strong>Quantity:</strong> {selectedOrder.quantity}</p>
                   <p><strong>Total:</strong> ₹{selectedOrder.price}</p>
-                  <p><strong>Status:</strong> <OrderStatusBadge status={selectedOrder.status} /></p>
+                  <p><strong>Status:</strong> <OrderStatusBadge status={selectedOrder.status as any} /></p>
                 </div>
               </div>
               {selectedOrder.deliveryAgent && (

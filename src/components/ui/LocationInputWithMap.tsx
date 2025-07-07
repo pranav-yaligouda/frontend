@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import * as React from "react";
 import { GoogleMap, Marker, useLoadScript } from '@react-google-maps/api';
 
 const libraries = ['places'];
@@ -41,19 +41,19 @@ const LocationInputWithMap: React.FC<LocationInputWithMapProps> = ({ value, onCh
     libraries: libraries as any,
   });
 
-  const [marker, setMarker] = useState<{ lat: number; lng: number }>(value?.coordinates || defaultCenter);
-  const [address, setAddress] = useState<Address>(value);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [marker, setMarker] = React.useState<{ lat: number; lng: number }>(value?.coordinates || defaultCenter);
+  const [address, setAddress] = React.useState<Address>(value);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (value && value.coordinates) {
       setMarker(value.coordinates);
       setAddress(value);
     }
   }, [value]);
 
-  const handleMapClick = useCallback(async (e: google.maps.MapMouseEvent) => {
+  const handleMapClick = React.useCallback(async (e: google.maps.MapMouseEvent) => {
     if (!e.latLng) return;
     const lat = e.latLng.lat();
     const lng = e.latLng.lng();

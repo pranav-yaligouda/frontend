@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import * as React from "react";
 import { createProduct, updateProduct } from '@/api/product';
 import type { Product } from '@/types/product';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
@@ -19,12 +19,12 @@ interface ProductModalProps {
 }
 
 const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, initial, categories, storeId, storeName, onSave }) => {
-  const [form, setForm] = useState<Partial<Product>>(initial || {});
-  const [loading, setLoading] = useState(false);
-  const [stockUnit, setStockUnit] = useState<string>(initial?.unit || 'pieces');
+  const [form, setForm] = React.useState<Partial<Product>>(initial || {});
+  const [loading, setLoading] = React.useState(false);
+  const [stockUnit, setStockUnit] = React.useState<string>(initial?.unit || 'pieces');
   const isEdit = Boolean(initial && initial._id);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setForm(initial || {});
     setStockUnit(initial?.unit || 'pieces');
   }, [initial, open]);

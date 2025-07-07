@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import * as React from "react";
 import type { Dish } from "@/types/dish";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -36,19 +36,19 @@ const Index = () => {
     dishes?: Dish[];
     deliveryTime?: string;
   };
-  const [hotels, setHotels] = useState<Hotel[]>([]);
-  const [normalizedDishes, setNormalizedDishes] = useState<Dish[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [hotels, setHotels] = React.useState<Hotel[]>([]);
+  const [normalizedDishes, setNormalizedDishes] = React.useState<Dish[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
   const { addItem } = useCart();
 
-  const [groceryStores, setGroceryStores] = useState<Store[]>([]);
-  const [groceryProducts, setGroceryProducts] = useState<Product[]>([]);
-  const [groceryLoading, setGroceryLoading] = useState(false);
-  const [selectedGroceryCategory, setSelectedGroceryCategory] = useState('');
-  const [selectedGroceryStore, setSelectedGroceryStore] = useState<string | null>(null);
-  const [grocerySearch, setGrocerySearch] = useState('');
+  const [groceryStores, setGroceryStores] = React.useState<Store[]>([]);
+  const [groceryProducts, setGroceryProducts] = React.useState<Product[]>([]);
+  const [groceryLoading, setGroceryLoading] = React.useState(false);
+  const [selectedGroceryCategory, setSelectedGroceryCategory] = React.useState('');
+  const [selectedGroceryStore, setSelectedGroceryStore] = React.useState<string | null>(null);
+  const [grocerySearch, setGrocerySearch] = React.useState('');
 
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchAll = async () => {
       setIsLoading(true);
       try {
@@ -152,9 +152,9 @@ const Index = () => {
     toast.success(`${dish.name} added to cart!`);
   };
 
-  const [selectedCategory, setSelectedCategory] = useState<string>("food_delivery");
+  const [selectedCategory, setSelectedCategory] = React.useState<string>("food_delivery");
   const sectionRefs = {
-    food_delivery: useRef<HTMLDivElement>(null),
+    food_delivery: React.useRef<HTMLDivElement>(null),
     // Add more refs for other categories if needed
   };
 
@@ -166,7 +166,7 @@ const Index = () => {
   };
 
   // Fetch grocery stores on mount
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchStores = async () => {
       try {
         setGroceryLoading(true);
@@ -182,7 +182,7 @@ const Index = () => {
   }, []);
 
   // Fetch grocery products when filters change
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchProducts = async () => {
       try {
         setGroceryLoading(true);

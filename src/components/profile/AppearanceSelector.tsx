@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import * as React from "react";
 
 const themes = [
   { label: "Light", value: "light" },
@@ -7,9 +7,9 @@ const themes = [
 ];
 
 const AppearanceSelector: React.FC = () => {
-  const [theme, setTheme] = useState("system");
+  const [theme, setTheme] = React.useState("system");
 
-  useEffect(() => {
+  React.useEffect(() => {
     // On mount, set theme from local storage or system
     const saved = localStorage.getItem("theme") || "system";
     setTheme(saved);

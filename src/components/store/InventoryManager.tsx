@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import * as React from "react";
 import {
   Table,
   TableBody,
@@ -52,17 +51,17 @@ interface InventoryManagerProps {
 }
 
 const InventoryManager = ({ storeId, products }: InventoryManagerProps) => {
-  const [storeProducts, setStoreProducts] = useState<StoreProduct[]>([]);
-  const [lowStockProducts, setLowStockProducts] = useState<StoreProduct[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [transactionQuantity, setTransactionQuantity] = useState<number>(0);
-  const [transactionNotes, setTransactionNotes] = useState<string>("");
-  const [transactionType, setTransactionType] = useState<'restock' | 'adjustment'>('restock');
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [storeProducts, setStoreProducts] = React.useState<StoreProduct[]>([]);
+  const [lowStockProducts, setLowStockProducts] = React.useState<StoreProduct[]>([]);
+  const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(null);
+  const [transactionQuantity, setTransactionQuantity] = React.useState<number>(0);
+  const [transactionNotes, setTransactionNotes] = React.useState<string>("");
+  const [transactionType, setTransactionType] = React.useState<'restock' | 'adjustment'>('restock');
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   // Fetch store products and low stock products
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {

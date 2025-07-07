@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 
 /**
  * A beautiful, accessible, theme-aware spinner loader for Suspense and data fetching.

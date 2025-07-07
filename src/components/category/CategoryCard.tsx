@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import * as React from "react";
 import { Link } from "react-router-dom";
 import { Category } from "@/data/models";
 import { getProductsByCategory } from "@/data/models";
@@ -9,9 +8,9 @@ interface CategoryCardProps {
 }
 
 const CategoryCard = ({ category }: CategoryCardProps) => {
-  const [productCount, setProductCount] = useState<number | null>(null);
+  const [productCount, setProductCount] = React.useState<number | null>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchProductCount = async () => {
       try {
         const products = await getProductsByCategory(category.id);

@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 
 const faqs = [
   { q: "How do I change my password?", a: "Go to your profile settings and select 'Change Password'." },

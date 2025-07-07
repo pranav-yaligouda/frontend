@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import * as React from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,17 +41,17 @@ const HotelMenu = () => {
   );
   const { id } = useParams();
   const { addItem } = useCart();
-  const [hotel, setHotel] = useState<any>(null);
-  const [dishes, setDishes] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [selectedMealType, setSelectedMealType] = useState<string>("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
+  const [hotel, setHotel] = React.useState<any>(null);
+  const [dishes, setDishes] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const [search, setSearch] = React.useState("");
+  const [selectedMealType, setSelectedMealType] = React.useState<string>("");
+  const [selectedCategory, setSelectedCategory] = React.useState<string>("");
+  const [quantities, setQuantities] = React.useState<{ [key: string]: number }>({});
 
   // Fetch hotel info and dishes robustly
-  useEffect(() => {
+  React.useEffect(() => {
     async function fetchData() {
       setLoading(true);
       setError(null);
@@ -119,7 +119,7 @@ setDishes(normalizedDishes);
   }, [id]);
 
   // Categorize dishes
-  const categorized = useMemo(() => {
+  const categorized = React.useMemo(() => {
     const cat: any = {};
     for (const dish of dishes) {
       const mealType = dish.mealType || "Other";
@@ -132,7 +132,7 @@ setDishes(normalizedDishes);
   }, [dishes]);
 
   // Filtered dishes by search
-  const filteredCategorized = useMemo(() => {
+  const filteredCategorized = React.useMemo(() => {
     if (!search.trim()) return categorized;
     const lower = search.toLowerCase();
     const filtered: any = {};

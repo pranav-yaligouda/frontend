@@ -1,13 +1,13 @@
-import React, { useState, ReactNode } from "react";
+import * as React from "react";
 
 interface CollapsibleSectionProps {
   title: string;
-  children: ReactNode;
+  children: React.ReactNode;
   className?: string;
 }
 
 const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children, className }) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = React.useState(false);
 
   return (
     <section className={className}>

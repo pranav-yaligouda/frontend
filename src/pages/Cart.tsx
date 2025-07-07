@@ -1,4 +1,4 @@
-import { useState } from "react";
+import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
@@ -17,14 +17,14 @@ const Cart = () => {
   const navigate = useNavigate();
 
   // Address object state
-  const [address, setAddress] = useState({
+  const [address, setAddress] = React.useState({
     addressLine: '',
     coordinates: null as { lat: number; lng: number } | null,
   });
-  const [instructions, setInstructions] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [customerLocation, setCustomerLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('cod');
+  const [instructions, setInstructions] = React.useState("");
+  const [isProcessing, setIsProcessing] = React.useState(false);
+  const [customerLocation, setCustomerLocation] = React.useState<{ lat: number; lng: number } | null>(null);
+  const [paymentMethod, setPaymentMethod] = React.useState<'cod' | 'online'>('cod');
 
 
   // Filter out invalid cart items (missing id or storeId)

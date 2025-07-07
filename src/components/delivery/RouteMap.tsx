@@ -1,5 +1,4 @@
-
-import { useEffect, useRef, useState } from "react";
+import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Order, Store, stores } from "@/data/models";
 import { MapPin } from "lucide-react";
@@ -9,14 +8,14 @@ interface RouteMapProps {
 }
 
 const RouteMap = ({ order }: RouteMapProps) => {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [mapError, setMapError] = useState<string | null>(null);
-  const mapObjectRef = useRef<google.maps.Map | null>(null);
-  const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
+  const mapRef = React.useRef<HTMLDivElement>(null);
+  const [mapLoaded, setMapLoaded] = React.useState(false);
+  const [mapError, setMapError] = React.useState<string | null>(null);
+  const mapObjectRef = React.useRef<google.maps.Map | null>(null);
+  const directionsRendererRef = React.useRef<google.maps.DirectionsRenderer | null>(null);
   
   // Load Google Maps API script
-  useEffect(() => {
+  React.useEffect(() => {
     // Check if Google Maps API is already loaded
     if (window.google && window.google.maps) {
       setMapLoaded(true);
@@ -51,7 +50,7 @@ const RouteMap = ({ order }: RouteMapProps) => {
   }, []);
   
   // Initialize map when API is loaded and order changes
-  useEffect(() => {
+  React.useEffect(() => {
     if (mapLoaded && order && mapRef.current) {
       console.log("Initializing map with order:", order);
       initMap();

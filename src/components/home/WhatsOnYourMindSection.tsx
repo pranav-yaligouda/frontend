@@ -11,7 +11,7 @@ import { DISH_CATEGORIES, MEAL_TYPE_IMAGES } from "@/constants/dishCategorizatio
 //   Beverages: "/images/categories/beverage.jpg",
 // };
 
-import React, { useState, useMemo, useEffect } from "react";
+import * as React from "react";
 import type { Dish } from "@/types/dish";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -36,17 +36,17 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
 }) => {
   // Use meal types from new DISH_CATEGORIES
   const mealTypes = Object.keys(DISH_CATEGORIES);
-  const [selectedMealType, setSelectedMealType] = useState<string>(""); // No meal type selected initially
-  const [selectedSubCategory, setSelectedSubCategory] = useState<string>("");
+  const [selectedMealType, setSelectedMealType] = React.useState<string>(""); // No meal type selected initially
+  const [selectedSubCategory, setSelectedSubCategory] = React.useState<string>("");
 
   // Get categories and subcategories for selected meal type
-  const mealCategories = useMemo(() => {
+  const mealCategories = React.useMemo(() => {
     return selectedMealType ? Object.keys(DISH_CATEGORIES[selectedMealType] || {}) : [];
   }, [selectedMealType]);
 
     // Filter dishes by new categorization (async handling)
-  const [filteredDishes, setFilteredDishes] = useState<Dish[]>([]);
-  useEffect(() => {
+  const [filteredDishes, setFilteredDishes] = React.useState<Dish[]>([]);
+  React.useEffect(() => {
     let isMounted = true;
     async function fetchAndFilterDishes() {
       try {
@@ -54,15 +54,13 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
         if (!selectedMealType) return;
         // Import getAllDishes directly
         const { getAllDishes } = await import('@/api/hotelApi');
-        const params: any = { mealType: selectedMealType };
+        const params: Record<string, unknown> = { mealType: selectedMealType };
         if (selectedSubCategory) params.category = selectedSubCategory;
-        // Optionally add pagination (e.g., page: 1, limit: 12)
         params.page = 1;
         params.limit = 12;
         const res = await getAllDishes(params);
         const items = res?.data?.items || [];
-        // Normalize dishes to always have id = _id and hotelId = hotel
-        const normalizedItems = items.map((dish: any) => {
+        const normalizedItems = items.map((dish: Partial<Dish> & { _id?: string; hotel?: string }) => {
           const id = dish._id || dish.id;
           const hotelId = dish.hotel;
           if (!id || !hotelId) {
@@ -76,7 +74,7 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
             id,
             hotelId,
           };
-        }).filter(Boolean);
+        }).filter(Boolean) as Dish[];
         if (isMounted) setFilteredDishes(normalizedItems);
       } catch (err) {
         if (isMounted) setFilteredDishes([]);

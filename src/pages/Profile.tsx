@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import Loader from "@/components/ui/Loader";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import AppearanceSelector from "@/components/profile/AppearanceSelector";

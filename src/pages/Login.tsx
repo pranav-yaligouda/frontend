@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import * as React from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { UserRole } from "@/context/AuthContext";
@@ -26,20 +25,20 @@ import { toast } from "sonner";
 const Login = () => {
   const { login, signup } = useAuth();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
 
   // Login form state
-  const [loginPhone, setLoginPhone] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
+  const [loginPhone, setLoginPhone] = React.useState("");
+  const [loginPassword, setLoginPassword] = React.useState("");
 
   // Signup form state
-  const [signupName, setSignupName] = useState("");
-  const [signupPhone, setSignupPhone] = useState("");
-  const [signupEmail, setSignupEmail] = useState("");
-  const [signupPassword, setSignupPassword] = useState("");
-  const [signupRole, setSignupRole] = useState(UserRole.CUSTOMER);
-  const [storeName, setStoreName] = useState("");
-  const [hotelName, setHotelName] = useState("");
+  const [signupName, setSignupName] = React.useState("");
+  const [signupPhone, setSignupPhone] = React.useState("");
+  const [signupEmail, setSignupEmail] = React.useState("");
+  const [signupPassword, setSignupPassword] = React.useState("");
+  const [signupRole, setSignupRole] = React.useState(UserRole.CUSTOMER);
+  const [storeName, setStoreName] = React.useState("");
+  const [hotelName, setHotelName] = React.useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

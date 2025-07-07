@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import * as React from "react";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
@@ -27,8 +27,8 @@ interface StoreInfoModalProps {
 }
 
 const StoreInfoModal: React.FC<StoreInfoModalProps> = ({ open, onSubmit, initial, loading }) => {
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState<StoreInfo>({
+  const [step, setStep] = React.useState(1);
+  const [form, setForm] = React.useState<StoreInfo>({
     name: initial?.name || '',
     address: initial?.address || '',
     location: initial?.location || { lat: 12.9716, lng: 77.5946 },
@@ -37,7 +37,7 @@ const StoreInfoModal: React.FC<StoreInfoModalProps> = ({ open, onSubmit, initial
     categories: initial?.categories || [],
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     setForm({
       name: initial?.name || '',
       address: initial?.address || '',
@@ -47,9 +47,9 @@ const StoreInfoModal: React.FC<StoreInfoModalProps> = ({ open, onSubmit, initial
       categories: initial?.categories || [],
     });
   }, [initial]);
-  const [calendarDates, setCalendarDates] = useState<Date[]>(initial?.holidays ? initial.holidays.map(d => new Date(d)) : []);
+  const [calendarDates, setCalendarDates] = React.useState<Date[]>(initial?.holidays ? initial.holidays.map(d => new Date(d)) : []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setForm(f => ({ ...f, holidays: calendarDates.map(d => d.toISOString().slice(0, 10)) }));
   }, [calendarDates]);
 

@@ -1,10 +1,9 @@
-
+import * as React from "react";
 import { Link } from "react-router-dom";
 import { Product } from "@/data/models";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
 import { ShoppingCart } from "lucide-react";
-import { useState } from "react";
 import { toast } from "sonner";
 
 interface ProductCardProps {
@@ -13,7 +12,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addItem } = useCart();
-  const [isAdding, setIsAdding] = useState(false);
+  const [isAdding, setIsAdding] = React.useState(false);
 
   const discountedPrice = product.discountPercent 
     ? product.price - (product.price * product.discountPercent / 100) 

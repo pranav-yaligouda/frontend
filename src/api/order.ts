@@ -213,6 +213,29 @@ else if (typeof params.pageSize === 'number') query.append('pageSize', String(pa
       throw error;
     }
   }
+
+  /**
+   * Fetch a single order by ID
+   * @param orderId Order ID to fetch
+   * @returns Order object
+   */
+  static async fetchOrderById(orderId: string): Promise<Order> {
+    try {
+      const response = await API.get(`/orders/${orderId}`);
+      if (response.data && response.data.success) {
+        return response.data.data;
+      } else {
+        throw new Error(response.data.error || 'Failed to fetch order');
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Error fetching order:', error.message);
+      } else {
+        console.error('Unknown error fetching order:', error);
+      }
+      throw error;
+    }
+  }
 }
 
 export default OrderProcessingService;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import * as React from "react";
 import { 
   Card, 
   CardContent, 
@@ -48,11 +48,11 @@ interface TransferItem {
 }
 
 const StoreTransfer = ({ currentStoreId, products, storeProducts }: StoreTransferProps) => {
-  const [toStoreId, setToStoreId] = useState<string>("");
-  const [transferItems, setTransferItems] = useState<TransferItem[]>([]);
-  const [selectedProductId, setSelectedProductId] = useState<string>("");
-  const [transferQuantity, setTransferQuantity] = useState<number>(1);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toStoreId, setToStoreId] = React.useState<string>("");
+  const [transferItems, setTransferItems] = React.useState<TransferItem[]>([]);
+  const [selectedProductId, setSelectedProductId] = React.useState<string>("");
+  const [transferQuantity, setTransferQuantity] = React.useState<number>(1);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   // Get available stores for transfer (excluding current store)
   const availableStores = stores.filter(store => store.id !== currentStoreId);

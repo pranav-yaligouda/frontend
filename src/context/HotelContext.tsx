@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
+import * as React from "react";
 
 export interface Hotel {
   _id: string;
@@ -21,11 +20,11 @@ interface HotelContextType {
   loading: boolean;
 }
 
-const HotelContext = createContext<HotelContextType | undefined>(undefined);
+const HotelContext = React.createContext<HotelContextType | undefined>(undefined);
 
-export const HotelProvider = ({ children }: { children: ReactNode }) => {
-  const [hotel, setHotel] = useState<Hotel | null>(null);
-  const [loading, setLoading] = useState(true);
+export const HotelProvider = ({ children }: { children: React.ReactNode }) => {
+  const [hotel, setHotel] = React.useState<Hotel | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
   const refreshHotel = async () => {
     setLoading(true);
@@ -42,7 +41,7 @@ export const HotelProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     refreshHotel();
   }, []);
 
@@ -54,7 +53,7 @@ export const HotelProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useHotel = () => {
-  const ctx = useContext(HotelContext);
+  const ctx = React.useContext(HotelContext);
   if (!ctx) throw new Error('useHotel must be used within HotelProvider');
   return ctx;
 };

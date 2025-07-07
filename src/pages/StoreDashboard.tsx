@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import * as React from "react";
 import { getMyStore, updateMyStore } from '@/api/storeApi';
 import { useStore } from '@/context/StoreContext';
 import { Button } from '@/components/ui/button';
@@ -16,16 +16,16 @@ const defaultTimings = WEEKDAYS.map(day => ({ day, open: '09:00', close: '21:00'
 
 const StoreDashboard: React.FC = () => {
   const { store, setStore, refreshStore, loading } = useStore();
-  const [modalOpen, setModalOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [storeNameOnly, setStoreNameOnly] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [submitting, setSubmitting] = React.useState(false);
+  const [storeNameOnly, setStoreNameOnly] = React.useState<string | null>(null);
 
   // Product management state
-  const [productModalOpen, setProductModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
-  const [productListKey, setProductListKey] = useState(0); // for refresh
+  const [productModalOpen, setProductModalOpen] = React.useState(false);
+  const [editingProduct, setEditingProduct] = React.useState<Product | undefined>(undefined);
+  const [productListKey, setProductListKey] = React.useState(0); // for refresh
 
-  useEffect(() => {
+  React.useEffect(() => {
     // If store is missing required onboarding fields, open modal
     if (!loading) {
       if (!store || !store.address || !store.location) {

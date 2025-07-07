@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import * as React from "react";
 import Loader from "@/components/ui/Loader";
 import { useParams, Link } from "react-router-dom";
 import { ChevronLeft, MapPin, Clock } from "lucide-react";
@@ -8,12 +8,12 @@ import type { Product } from "@/types/product";
 
 const Store = () => {
   const { id } = useParams<{ id: string }>();
-  const [store, setStore] = useState<Store | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
+  const [store, setStore] = React.useState<Store | null>(null);
+  const [products, setProducts] = React.useState<Product[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [isOpen, setIsOpen] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!id) return;
 
     const fetchData = async () => {

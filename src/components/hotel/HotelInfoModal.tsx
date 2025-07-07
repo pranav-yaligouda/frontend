@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import * as React from "react";
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -61,16 +61,16 @@ export const HotelInfoModal = ({ open, onSubmit, initial, loading }: {
   initial?: Partial<HotelFormType>;
   loading?: boolean;
 }) => {
-  const [step, setStep] = useState(1);
-  const [imagePreview, setImagePreview] = useState<string | null>(initial?.image ?? null);
-  const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(initial?.location ? { lat: initial.location.lat, lng: initial.location.lng } : null);
-  const [calendarDates, setCalendarDates] = useState<Date[]>(initial?.holidays ? initial.holidays.map(d => new Date(d)) : []);
-  const [addressLoading, setAddressLoading] = useState(false);
-  const [mapZoom, setMapZoom] = useState(15);
-  const mapRef = useRef<google.maps.Map | null>(null);
+  const [step, setStep] = React.useState(1);
+  const [imagePreview, setImagePreview] = React.useState<string | null>(initial?.image ?? null);
+  const [selectedCoords, setSelectedCoords] = React.useState<{ lat: number; lng: number } | null>(initial?.location ? { lat: initial.location.lat, lng: initial.location.lng } : null);
+  const [calendarDates, setCalendarDates] = React.useState<Date[]>(initial?.holidays ? initial.holidays.map(d => new Date(d)) : []);
+  const [addressLoading, setAddressLoading] = React.useState(false);
+  const [mapZoom, setMapZoom] = React.useState(15);
+  const mapRef = React.useRef<google.maps.Map | null>(null);
   const mapStyles = { width: '100%', height: 400, borderRadius: 8, overflow: 'hidden', marginBottom: 16 };
 
-  const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<HotelFormType>({
+  const { control, handleSubmit, setValue, watch, formState: { errors } } = React.useForm<HotelFormType>({
     resolver: zodResolver(hotelSchema),
     defaultValues: initial ? {
       ...initial,
@@ -91,7 +91,7 @@ export const HotelInfoModal = ({ open, onSubmit, initial, loading }: {
     },
   });
 
-  const { isLoaded } = useJsApiLoader({
+  const { isLoaded } = React.useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
     libraries: GOOGLE_MAPS_LIBRARIES as unknown as ["places"]
   });
