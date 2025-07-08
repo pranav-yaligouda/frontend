@@ -192,11 +192,9 @@ const Index = () => {
         if (grocerySearch) params.search = grocerySearch;
         params.page = 1;
         params.limit = 20;
-        if (!params.storeId) {
-          throw new Error('Store ID is required to fetch products');
-        }
+        // Do NOT throw if storeId is missing; allow fetching all products
         const res = await getProducts(params as {
-          storeId: string;
+          storeId?: string;
           category?: string;
           search?: string;
           page?: number;
@@ -206,8 +204,6 @@ const Index = () => {
       } catch (err) {
         toast.error('Failed to fetch products');
         setGroceryProducts([]);
-        // Optionally log error for debugging
-        // console.error(err);
       } finally {
         setGroceryLoading(false);
       }

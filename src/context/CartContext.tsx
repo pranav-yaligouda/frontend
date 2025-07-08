@@ -1,5 +1,6 @@
 import * as React from "react";
 import { toast } from 'sonner';
+import { useState } from 'react';
 
 // Cart item interface
 export interface CartItem {
@@ -31,6 +32,8 @@ const CartContext = React.createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = React.useState<CartItem[]>([]);
+  const [pendingItem, setPendingItem] = useState<Omit<CartItem, 'quantity'> | null>(null);
+  const [showPrompt, setShowPrompt] = useState(false);
 
   // Load cart from localStorage on mount
   React.useEffect(() => {
@@ -56,6 +59,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
     setItems(prevItems => {
+      if (prevItems.length > 0) {
+        const first = prevItems[0];
+        // Only allow same type and same store/hotel
+        if (
+          first.type !== item.type ||
+          first.storeId !== item.storeId
+        ) {
+         // Prompt user to clear cart before adding new item
+         setPendingItem(item);
+         setShowPrompt(true);
+         return prevItems; // Do not add yet
+        }
+      }
       // Fallback for legacy items (before 'type' was added)
       const normalizedItem = {
         ...item,
@@ -72,6 +88,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  // Handler for confirming cart clear and adding new item
+  const confirmAndAddPendingItem = () => {
+    if (pendingItem) {
+      setItems([{ ...pendingItem, quantity: 1 }]);
+      setPendingItem(null);
+      setShowPrompt(false);
+      toast.success('Cart cleared and new item added.');
+    }
+  };
+
+  // Handler for cancelling cart clear
+  const cancelPrompt = () => {
+    setPendingItem(null);
+    setShowPrompt(false);
+    toast.info('Cart not changed.');
+  };
 
   // Remove item from cart
   const removeItem = (id: string) => {
@@ -127,6 +159,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       getStores
     }}>
       {children}
+      {/* Prompt for clearing cart if user tries to add from a different store/hotel/type */}
+      {showPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
+            <h2 className="text-lg font-bold mb-2">Start a new order?</h2>
+            <p className="mb-4">You can only order from one hotel or store at a time. Would you like to clear your cart and add this item?</p>
+            <div className="flex justify-end gap-2">
+              <button className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300" onClick={cancelPrompt}>Cancel</button>
+              <button className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700" onClick={confirmAndAddPendingItem}>Clear Cart & Add</button>
+            </div>
+          </div>
+        </div>
+      )}
     </CartContext.Provider>
   );
 };

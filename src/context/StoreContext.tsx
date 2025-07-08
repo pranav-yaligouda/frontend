@@ -1,5 +1,7 @@
 import * as React from "react";
 import { getMyStore } from '@/api/storeApi';
+import { useAuth } from "@/context/AuthContext";
+import { useLocation } from "react-router-dom";
 
 export interface Store {
   _id: string;
@@ -28,6 +30,9 @@ export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
   const [store, setStore] = React.useState<Store | null>(null);
   const [loading, setLoading] = React.useState(true);
 
+  const { user } = useAuth();
+  const location = useLocation();
+
   const refreshStore = async () => {
     setLoading(true);
     try {
@@ -44,8 +49,17 @@ export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   React.useEffect(() => {
-    refreshStore();
-  }, []);
+    // Only fetch store if user is store_owner and on store dashboard
+    if (
+      user?.role === "store_owner" &&
+      location.pathname.startsWith("/store-dashboard")
+    ) {
+      refreshStore();
+    } else {
+      setStore(null); // Clear store context for other users/pages
+      setLoading(false);
+    }
+  }, [user, location]);
 
   return (
     <StoreContext.Provider value={{ store, setStore, refreshStore, loading }}>

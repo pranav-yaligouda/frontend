@@ -36,11 +36,11 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <CartProvider>
-        <StoreProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <StoreProvider>
               <div className="flex flex-col min-h-screen">
                 <Navbar />
                 <main className="flex-grow">
@@ -66,9 +66,9 @@ const App = () => (
                 </main>
                 <Footer />
               </div>
-            </BrowserRouter>
-          </TooltipProvider>
-        </StoreProvider>
+            </StoreProvider>
+          </BrowserRouter>
+        </TooltipProvider>
       </CartProvider>
     </AuthProvider>
   </QueryClientProvider>

@@ -2,7 +2,7 @@ import API from './index';
 import { Product } from '../types/product';
 
 // Fetch products for a store, with optional filters
-export const getProducts = (params: { storeId: string; category?: string; search?: string; page?: number; limit?: number }) =>
+export const getProducts = (params: { storeId?: string; category?: string; search?: string; page?: number; limit?: number }) =>
   API.get<{ data: { items: Product[]; total: number } }>('/products', { params });
 
 // Create a new product
