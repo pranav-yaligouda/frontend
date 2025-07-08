@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -88,13 +89,15 @@ export const HotelInfoModal = ({
     overflow: "hidden",
     marginBottom: 16,
   };
+  const [submitting, setSubmitting] = React.useState(false);
 
   const {
     register,
     handleSubmit,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isValid },
+    trigger,
   } = useForm<HotelFormType>({
     resolver: zodResolver(hotelSchema),
     defaultValues: initial
@@ -129,7 +132,12 @@ export const HotelInfoModal = ({
           ),
           holidays: [],
         },
+    mode: "onChange",
   });
+
+  useEffect(() => {
+    if (open) trigger();
+  }, [open, trigger]);
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
@@ -145,12 +153,12 @@ export const HotelInfoModal = ({
       );
       const data = await res.json();
       if (data.results && data.results[0]) {
-        setValue("address", data.results[0].formatted_address);
+        setValue("address", data.results[0].formatted_address, { shouldDirty: true, shouldValidate: true });
         setValue("location", {
           lat,
           lng,
           address: data.results[0].formatted_address,
-        });
+        }, { shouldDirty: true, shouldValidate: true });
       }
     } finally {
       setAddressLoading(false);
@@ -170,7 +178,8 @@ export const HotelInfoModal = ({
     setCalendarDates(dates);
     setValue(
       "holidays",
-      dates.map((d) => d.toISOString().split("T")[0])
+      dates.map((d) => d.toISOString().split("T")[0]),
+      { shouldDirty: true }
     );
   };
 
@@ -184,21 +193,26 @@ export const HotelInfoModal = ({
   };
 
   const submitHandler = async (values: HotelFormType) => {
-    let imageBase64 = values.image;
-    if (values.image instanceof File) {
-      imageBase64 = await fileToBase64(values.image);
+    setSubmitting(true);
+    try {
+      let imageBase64 = values.image;
+      if (values.image instanceof File) {
+        imageBase64 = await fileToBase64(values.image);
+      }
+      const location = {
+        type: "Point",
+        coordinates: [values.location.lng, values.location.lat],
+        address: values.location.address || values.address || "",
+      };
+      const payload = {
+        ...values,
+        image: imageBase64,
+        location,
+      };
+      await onSubmit(payload);
+    } finally {
+      setSubmitting(false);
     }
-    const location = {
-      type: "Point",
-      coordinates: [values.location.lng, values.location.lat],
-      address: values.location.address || values.address || "",
-    };
-    const payload = {
-      ...values,
-      image: imageBase64,
-      location,
-    };
-    onSubmit(payload);
   };
 
   if (!isLoaded) return <div>Loading map...</div>;
@@ -218,7 +232,7 @@ export const HotelInfoModal = ({
             <div className="space-y-6">
               <div>
                 <Label>Hotel Name</Label>
-                <Input {...register("name")} placeholder="Enter hotel name" />
+                <Input {...register("name")} placeholder="Enter hotel name" readOnly />
                 {errors.name && (
                   <p className="text-red-500 text-sm">{errors.name.message}</p>
                 )}
@@ -235,7 +249,7 @@ export const HotelInfoModal = ({
                       alert("Image too large (max 4MB).");
                       return;
                     }
-                    setValue("image", file);
+                    setValue("image", file, { shouldDirty: true });
                     setImagePreview(URL.createObjectURL(file));
                   }}
                 />
@@ -326,8 +340,7 @@ export const HotelInfoModal = ({
                 <Input
                   {...register("address")}
                   placeholder="Hotel address"
-                  value={watch("address")}
-                  onChange={(e) => setValue("address", e.target.value)}
+                  readOnly
                   disabled={addressLoading}
                 />
                 {addressLoading && (
@@ -358,7 +371,7 @@ export const HotelInfoModal = ({
                           type="time"
                           value={watch(`timings.${day}.open`) || "09:00"}
                           onChange={(e) =>
-                            setValue(`timings.${day}.open`, e.target.value)
+                            setValue(`timings.${day}.open`, e.target.value, { shouldDirty: true })
                           }
                         />
                         <span className="text-sm">-</span>
@@ -366,7 +379,7 @@ export const HotelInfoModal = ({
                           type="time"
                           value={watch(`timings.${day}.close`) || "22:00"}
                           onChange={(e) =>
-                            setValue(`timings.${day}.close`, e.target.value)
+                            setValue(`timings.${day}.close`, e.target.value, { shouldDirty: true })
                           }
                         />
                         <div className="flex items-center ml-2">
@@ -374,7 +387,7 @@ export const HotelInfoModal = ({
                             type="checkbox"
                             checked={watch(`timings.${day}.holiday`) || false}
                             onChange={(e) =>
-                              setValue(`timings.${day}.holiday`, e.target.checked)
+                              setValue(`timings.${day}.holiday`, e.target.checked, { shouldDirty: true })
                             }
                           />
                           <Label htmlFor={`holiday-${day}`} className="ml-2">
@@ -399,8 +412,8 @@ export const HotelInfoModal = ({
                 <Button type="button" variant="outline" onClick={() => setStep(1)}>
                   Back
                 </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading ? (
+                <Button type="submit" disabled={loading || submitting || !isValid}>
+                  {loading || submitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Saving...
