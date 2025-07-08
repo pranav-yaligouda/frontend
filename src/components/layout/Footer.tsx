@@ -21,10 +21,6 @@ const MobileFooterNav = () => {
     dashboardIcon = <Store className="w-6 h-6" />;
     dashboardLabel = "Store";
     dashboardRoute = "/storefront";
-  } else if (hasRole([UserRole.DELIVERY_AGENT])) {
-    dashboardIcon = <Truck className="w-6 h-6" />;
-    dashboardLabel = "Delivery";
-    dashboardRoute = "/deliveries";
   }
 
   if (!user) {
@@ -49,13 +45,35 @@ const MobileFooterNav = () => {
         <Home className="w-6 h-6 mb-0.5" />
         <span>Home</span>
       </button>
-      <button
-        className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none"
-        onClick={() => navigate(dashboardRoute)}
-      >
-        {dashboardIcon}
-        <span>{dashboardLabel}</span>
-      </button>
+      {hasRole([UserRole.DELIVERY_AGENT]) ? (
+        <>
+          <button
+            className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none"
+            onClick={() => navigate("/deliveries")}
+            aria-label="Deliveries"
+          >
+            <Truck className="w-6 h-6" />
+            <span>Deliveries</span>
+          </button>
+          <button
+            className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none"
+            onClick={() => navigate("/delivery-dashboard")}
+            aria-label="Dashboard"
+          >
+            <Truck className="w-6 h-6" />
+            <span>Dashboard</span>
+          </button>
+        </>
+      ) : (
+        <button
+          className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none"
+          onClick={() => navigate(dashboardRoute)}
+          aria-label={dashboardLabel}
+        >
+          {dashboardIcon}
+          <span>{dashboardLabel}</span>
+        </button>
+      )}
       {isCustomer && (
         <button
           className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none"

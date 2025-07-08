@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, User, Search, PhoneCall } from "lucide-react";
+import { ShoppingCart, User, Search, PhoneCall, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth, UserRole } from "@/context/AuthContext";
@@ -65,12 +65,24 @@ const Navbar = () => {
               </Link>
             )}
             {isAuthenticated && hasRole([UserRole.DELIVERY_AGENT]) && (
-              <Link
-                to="/deliveries"
-                className="text-sm font-medium text-gray-700 transition-colors hover:text-primary"
-              >
-                Deliveries
-              </Link>
+              <>
+                <Link
+                  to="/deliveries"
+                  className="flex items-center text-sm font-medium text-gray-700 transition-colors hover:text-primary"
+                  aria-label="Deliveries"
+                >
+                  <Truck className="w-4 h-4 mr-1" />
+                  Deliveries
+                </Link>
+                <Link
+                  to="/delivery-dashboard"
+                  className="flex items-center text-sm font-medium text-gray-700 transition-colors hover:text-primary"
+                  aria-label="Dashboard"
+                >
+                  <Truck className="w-4 h-4 mr-1" />
+                  Dashboard
+                </Link>
+              </>
             )}
             <Link
               to="/cart"

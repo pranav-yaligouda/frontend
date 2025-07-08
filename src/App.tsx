@@ -9,6 +9,7 @@ import { StoreProvider } from '@/context/StoreContext';
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import StickyCartBar from "@/components/cart/StickyCartBar";
 
 import * as React from "react";
 import Loader from "@/components/ui/Loader";
@@ -29,6 +30,7 @@ const Deliveries = React.lazy(() => import("./pages/Deliveries"));
 const Search = React.lazy(() => import("./pages/Search"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const Profile = React.lazy(() => import("./pages/Profile"));
+const DeliveryDashboard = React.lazy(() => import("./pages/DeliveryDashboard"));
 
 const queryClient = new QueryClient();
 
@@ -58,12 +60,14 @@ const App = () => (
                       <Route path="/store-dashboard" element={<StoreDashboard />} />
                       <Route path="/hotel-dashboard" element={<HotelDashboard />} />
                       <Route path="/deliveries" element={<Deliveries />} />
+                      <Route path="/delivery-dashboard" element={<DeliveryDashboard />} />
                       <Route path="/profile" element={<Profile />} />
                       <Route path="/search" element={<Search />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </React.Suspense>
                 </main>
+                <StickyCartBar />
                 <Footer />
               </div>
             </StoreProvider>

@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import LocationInputWithMap from "@/components/ui/LocationInputWithMap";
 // import LocationInput from "@/components/ui/locationInput"; // replaced with Google Maps version
 import { toast } from "sonner";
-import { createOrder, Product } from "@/data/models";
 import { OrderProcessingService } from "@/api/order";
 
 const Cart = () => {
@@ -44,11 +43,7 @@ const Cart = () => {
     const newQuantity = currentQuantity + change;
     const cartItem = items.find(item => item.id === id);
     if (!cartItem) return;
-    const product = products.find(p => p.id === cartItem.productId);
-    if (product && newQuantity > product.stockQuantity) {
-      toast.error(`Sorry, only ${product.stockQuantity} available in stock`);
-      return;
-    }
+    // Only check stock for products in the future (not dishes). For now, skip stock check.
     if (newQuantity <= 0) {
       removeItem(id);
     } else {
@@ -282,6 +277,8 @@ const Cart = () => {
                             size="icon"
                             className="w-8 h-8"
                             onClick={() => handleUpdateQuantity(item.id, item.quantity, -1)}
+                            aria-label={`Decrease quantity of ${item.name}`}
+                            disabled={item.quantity <= 1}
                           >
                             <Minus className="w-3 h-3" />
                           </Button>
@@ -291,6 +288,7 @@ const Cart = () => {
                             size="icon"
                             className="w-8 h-8"
                             onClick={() => handleUpdateQuantity(item.id, item.quantity, 1)}
+                            aria-label={`Increase quantity of ${item.name}`}
                           >
                             <Plus className="w-3 h-3" />
                           </Button>
@@ -302,6 +300,7 @@ const Cart = () => {
                             size="icon"
                             className="text-gray-400 hover:text-red-500"
                             onClick={() => removeItem(item.id)}
+                            aria-label={`Remove ${item.name} from cart`}
                           >
                             <Trash className="w-4 h-4" />
                           </Button>

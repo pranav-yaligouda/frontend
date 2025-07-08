@@ -19,6 +19,13 @@ export interface User {
   role: UserRole;
   storeName?: string; // For store_owner
   hotelName?: string; // For hotel_manager
+  // Delivery agent fields
+  isVerified?: boolean;
+  verificationStatus?: 'pending' | 'verified' | 'rejected';
+  driverLicenseNumber?: string;
+  vehicleRegistrationNumber?: string;
+  isOnline?: boolean;
+  lastOnlineAt?: string;
 }
 
 // Auth context interface
@@ -30,6 +37,7 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   hasRole: (roles: UserRole[]) => boolean;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
 // Create auth context
@@ -132,7 +140,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signup,
       logout,
       isAuthenticated: !!user,
-      hasRole
+      hasRole,
+      setUser
     }}>
       {children}
     </AuthContext.Provider>

@@ -28,6 +28,7 @@ import type { Order } from "@/types/order";
 import { toast } from "sonner";
 import RouteMap from "@/components/delivery/RouteMap";
 import OrderProcessingService from "@/api/order";
+import { useState } from "react";
 
 const Deliveries = () => {
   const { user, hasRole } = useAuth();
@@ -123,10 +124,11 @@ const Deliveries = () => {
     );
   }
 
+  // Add dashboard analytics for verified agents
   return (
     <div className="container px-4 py-8 mx-auto">
       <h1 className="mb-8 text-3xl font-bold">Deliveries</h1>
-
+      {/* Removed dashboard analytics cards from here */}
       <div className="mb-6 flex justify-between items-center">
         <div>
           <h2 className="text-lg font-medium">
