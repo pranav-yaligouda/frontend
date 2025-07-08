@@ -1,6 +1,9 @@
 export interface Product {
     _id?: string;
-    store: string; // storeId as string
+    id?: string; // frontend use
+    store: string;
+    storeId?: string; // frontend use
+    storeName?: string; // frontend use
     name: string;
     description?: string;
     price: number;
@@ -12,4 +15,9 @@ export interface Product {
     isDeleted?: boolean;
     createdAt?: string;
     updatedAt?: string;
+    // Modern card UI/UX fields
+    discountPercent?: number;
+    isNew?: boolean;
+    isBestseller?: boolean;
+    rating?: number;
 }

@@ -3,8 +3,6 @@ import type { Dish } from "@/types/dish";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ProductGrid from "@/components/product/ProductGrid";
-import CategoryCard from "@/components/category/CategoryCard";
 import StoreCard from "@/components/store/StoreCard";
 import PerfectionSection from "@/components/home/PerfectionSection";
 import { ChevronRight, Star, MapPin } from "lucide-react";
@@ -12,12 +10,12 @@ import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 
 import WhatsOnYourMindSection from "@/components/home/WhatsOnYourMindSection";
-import HomeCategoryTabs from "@/components/home/HomeCategoryTabs";
 import { getAllStores } from '@/api/storeApi';
 import { getProducts } from '@/api/product';
 import ProductCard from "@/components/product/ProductCard";
 import type { Product } from "@/types/product";
 import type { Store } from "@/types/store";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 const PRODUCT_CATEGORIES = [
@@ -200,16 +198,51 @@ const Index = () => {
           page?: number;
           limit?: number;
         });
-        setGroceryProducts(res.data.data.items || []);
+        // Correct path: res.data.data.items
+        const normalizedProducts = (res.data.data.items || []).map((product) => {
+          const store = groceryStores.find(s => s._id === product.store);
+          return {
+            ...product,
+            id: product._id,
+            storeId: product.store,
+            storeName: store ? store.name : 'Unknown Store',
+          };
+        });
+        setGroceryProducts(normalizedProducts);
       } catch (err) {
         toast.error('Failed to fetch products');
-        setGroceryProducts([]);
       } finally {
         setGroceryLoading(false);
       }
     };
     fetchProducts();
-  }, [selectedGroceryStore, selectedGroceryCategory, grocerySearch]);
+  // Add groceryStores to dependency array
+  }, [selectedGroceryStore, selectedGroceryCategory, grocerySearch, groceryStores]);
+
+  // Add handler for adding product to cart
+  const handleAddProductToCart = React.useCallback((product: Product) => {
+    if (!product.id || !product.storeId) {
+      toast.error('Cannot add to cart: Invalid product or store ID.');
+      return;
+    }
+    addItem({
+      id: `${product.storeId}_${product.id}`,
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      storeId: product.storeId,
+      storeName: product.storeName,
+      type: 'product',
+    });
+    toast.success(`${product.name} added to cart!`);
+  }, [addItem]);
+
+  // Optional: handler for quick view
+  const handleQuickView = React.useCallback((product: Product) => {
+    // Implement modal or drawer logic here, e.g. setQuickViewProduct(product); setShowQuickView(true);
+    toast.info(`Quick view for ${product.name}`);
+  }, []);
 
   return (
     <div className="pb-16 bg-gradient-to-b from-primary-100 via-primary-50 to-white min-h-screen">
@@ -222,7 +255,9 @@ const Index = () => {
               <div className="flex justify-center w-full mt-2 mb-4">
                 <div className="w-full max-w-lg px-2">
                   <TabsList
-                    className="flex w-full rounded-full bg-white shadow-md border border-athani-100 p-1 gap-1 items-center justify-between"
+                    className="flex w-full rounded-full bg-white shadow-lg border border-athani-100 p-1 gap-1 items-center justify-between
+                      sticky top-[3.5rem] z-40 transition-all backdrop-blur-md
+                      md:static md:backdrop-blur-0 md:shadow-none md:border-0"
                     style={{ minHeight: '3.25rem' }}
                   >
                     <TabsTrigger
@@ -282,7 +317,15 @@ const Index = () => {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {isLoading ? (
-                      <div className="col-span-full text-center py-12 text-gray-400 text-lg">Loading restaurants...</div>
+                      Array.from({ length: 8 }).map((_, i) => (
+                        <div key={i} className="flex flex-col bg-white rounded-xl shadow-lg border border-gray-100 p-4 animate-pulse">
+                          <Skeleton className="w-full h-40 sm:h-48 md:h-52 mb-3" />
+                          <Skeleton className="w-2/3 h-6 mb-2" />
+                          <Skeleton className="w-1/2 h-4 mb-2" />
+                          <Skeleton className="w-1/3 h-4 mb-2" />
+                          <Skeleton className="w-full h-10" />
+                        </div>
+                      ))
                     ) : hotels.length === 0 ? (
                       <div className="col-span-full text-center py-12 text-gray-400 text-lg">No restaurants found.</div>
                     ) : (
@@ -431,12 +474,25 @@ const Index = () => {
                 {/* Product Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {groceryLoading ? (
-                    Array.from({ length: 8 }).map((_, i) => <div key={i} className="bg-gray-100 rounded-xl h-48 animate-pulse" />)
+                    Array.from({ length: 8 }).map((_, i) => (
+                      <div key={i} className="flex flex-col bg-white rounded-lg shadow p-4 animate-pulse">
+                        <Skeleton className="w-full h-32 mb-2" />
+                        <Skeleton className="w-1/2 h-4 mb-2" />
+                        <Skeleton className="w-1/3 h-6 mb-2" />
+                        <Skeleton className="w-full h-10 mb-2" />
+                        <Skeleton className="w-full h-10" />
+                      </div>
+                    ))
                   ) : groceryProducts.length === 0 ? (
                     <div className="col-span-full text-center text-gray-400 py-8">No products found.</div>
                   ) : (
                     groceryProducts.map(product => (
-                      <ProductCard key={product._id} product={product} />
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        addToCart={handleAddProductToCart}
+                        onQuickView={handleQuickView}
+                      />
                     ))
                   )}
                 </div>
