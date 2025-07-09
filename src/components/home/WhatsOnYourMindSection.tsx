@@ -15,6 +15,7 @@ import * as React from "react";
 import type { Dish } from "@/types/dish";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { useDishes } from '@/hooks/useDishes';
 
 
 interface WhatsOnYourMindSectionProps {
@@ -30,8 +31,7 @@ const DEFAULT_DISH_IMAGE = "/images/dishes/default.jpg";
 const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
   onCategorySelect,
   selectedCategory,
-  dishes = [],
-  isLoading = false,
+  isLoading: parentLoading = false,
   onAddToCart,
 }) => {
   // Use meal types from new DISH_CATEGORIES
@@ -44,49 +44,13 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
     return selectedMealType ? Object.keys(DISH_CATEGORIES[selectedMealType] || {}) : [];
   }, [selectedMealType]);
 
-    // Filter dishes by new categorization (async handling)
-  const [filteredDishes, setFilteredDishes] = React.useState<Dish[]>([]);
-  React.useEffect(() => {
-    let isMounted = true;
-    async function fetchAndFilterDishes() {
-      try {
-        setFilteredDishes([]);
-        if (!selectedMealType) return;
-        // Import getAllDishes directly
-        const { getAllDishes } = await import('@/api/hotelApi');
-        const params: Record<string, unknown> = { mealType: selectedMealType };
-        if (selectedSubCategory) params.category = selectedSubCategory;
-        params.page = 1;
-        params.limit = 12;
-        const res = await getAllDishes(params);
-        const items = res?.data?.items || [];
-        const normalizedItems = items.map((dish: Partial<Dish> & { _id?: string; hotel?: string }) => {
-          const id = dish._id || dish.id;
-          const hotelId = dish.hotel;
-          if (!id || !hotelId) {
-            if (typeof window !== 'undefined' && window.console) {
-              window.console.warn('Skipping dish with missing _id or hotel:', dish);
-            }
-            return null;
-          }
-          return {
-            ...dish,
-            id,
-            hotelId,
-          };
-        }).filter(Boolean) as Dish[];
-        if (isMounted) setFilteredDishes(normalizedItems);
-      } catch (err) {
-        if (isMounted) setFilteredDishes([]);
-      }
-    }
-    if (selectedMealType) {
-      fetchAndFilterDishes();
-    } else {
-      setFilteredDishes([]);
-    }
-    return () => { isMounted = false; };
-  }, [selectedMealType, selectedSubCategory]);
+  // Use React Query for dishes
+  const { data: filteredDishes = [], isLoading: dishesLoading, isError: dishesError } = useDishes({
+    mealType: selectedMealType,
+    category: selectedSubCategory,
+    page: 1,
+    limit: 12,
+  });
 
 
   return (
@@ -141,7 +105,7 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
 
       {/* Dish grid and loading/empty states directly follow the filter bar, with no extra pills or divider */}
       <div className="px-2 sm:px-4">
-        {isLoading && selectedMealType !== "" ? (
+        {dishesLoading && selectedMealType !== "" ? (
           <div className="text-center py-8 text-athani-500 font-medium animate-pulse">Loading dishes...</div>
         ) : selectedMealType === "" ? (
           <div className="py-8" />

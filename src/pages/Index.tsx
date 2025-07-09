@@ -10,8 +10,10 @@ import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 
 import WhatsOnYourMindSection from "@/components/home/WhatsOnYourMindSection";
-import { getAllStores } from '@/api/storeApi';
-import { getProducts } from '@/api/product';
+import { useHotels } from '@/hooks/useHotels';
+import { useStores } from '@/hooks/useStores';
+import { useProducts } from '@/hooks/useProducts';
+import { useDishes } from '@/hooks/useDishes';
 import ProductCard from "@/components/product/ProductCard";
 import type { Product } from "@/types/product";
 import type { Store } from "@/types/store";
@@ -34,96 +36,25 @@ const Index = () => {
     dishes?: Dish[];
     deliveryTime?: string;
   };
-  const [hotels, setHotels] = React.useState<Hotel[]>([]);
-  const [normalizedDishes, setNormalizedDishes] = React.useState<Dish[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
   const { addItem } = useCart();
 
-  const [groceryStores, setGroceryStores] = React.useState<Store[]>([]);
-  const [groceryProducts, setGroceryProducts] = React.useState<Product[]>([]);
-  const [groceryLoading, setGroceryLoading] = React.useState(false);
+  // Hotels
+  const { data: hotels = [], isLoading: hotelsLoading, isError: hotelsError } = useHotels();
+  // Dishes (flattened from hotels)
+  const { data: dishes = [], isLoading: dishesLoading, isError: dishesError } = useDishes({});
+  // Stores
+  const { data: groceryStores = [], isLoading: storesLoading, isError: storesError } = useStores();
+  // Products (with filters)
   const [selectedGroceryCategory, setSelectedGroceryCategory] = React.useState('');
   const [selectedGroceryStore, setSelectedGroceryStore] = React.useState<string | null>(null);
   const [grocerySearch, setGrocerySearch] = React.useState('');
-
-  React.useEffect(() => {
-    const fetchAll = async () => {
-      setIsLoading(true);
-      try {
-        const { getAllHotels } = await import('@/api/hotelApi');
-        const hotelsResponse = await getAllHotels();
-        let hotelsData: Hotel[] = [];
-        if (hotelsResponse && hotelsResponse.success) {
-          // Support paginated response shape
-          if (hotelsResponse.data && Array.isArray(hotelsResponse.data.items)) {
-            hotelsData = hotelsResponse.data.items;
-          } else if (Array.isArray(hotelsResponse.data)) {
-            hotelsData = hotelsResponse.data;
-          } else {
-            hotelsData = [];
-          }
-        } else {
-          toast.error(hotelsResponse?.error || 'Failed to fetch hotels');
-          hotelsData = [];
-        }
-        // Normalize hotel data and image URLs
-        const staticBase = import.meta.env.VITE_STATIC_URL || 'http://localhost:4000';
-        const normalizedHotels = hotelsData.map((hotel: Hotel) => {
-          let imageUrl = hotel.image;
-          if (imageUrl) {
-            if (/^data:image\//.test(imageUrl)) {
-              // Use base64 as-is
-            } else if (!/^https?:\/\//.test(imageUrl)) {
-              imageUrl = `${staticBase}/uploads/${imageUrl}`;
-            }
-          } else {
-            imageUrl = '/images/hotels/default.jpg';
-          }
-          return {
-            ...hotel,
-            id: hotel._id || hotel.id,
-            image: imageUrl,
-          };
-        });
-        setHotels(normalizedHotels);
-        // Flatten all hotel dishes into a single array, attaching hotel info
-        const normalized: Dish[] = [];
-        for (const hotel of hotelsData) {
-          for (const hotelDish of hotel.dishes || []) {
-            let imageUrl = hotelDish.image;
-            if (imageUrl && !/^https?:\/\//.test(imageUrl)) {
-              imageUrl = `${staticBase}/uploads/${imageUrl}`;
-            }
-            if (!imageUrl) {
-              imageUrl = "/images/dishes/default.jpg";
-            }
-            // Robust normalization: always set id from _id and hotelId from hotel._id or fallback to dish.hotel
-            const dishId = hotelDish._id || hotelDish.id;
-            const hotelId = hotel._id || hotel.id || hotelDish.hotelId;
-            if (!dishId || !hotelId) {
-              if (typeof window !== 'undefined' && window.console) {
-                window.console.warn('Skipping dish with missing _id or hotelId:', { hotelDish, hotel });
-              }
-              continue;
-            }
-            normalized.push({
-              ...hotelDish,
-              hotelName: hotel.name,
-              hotelId: hotelId,
-              id: dishId,
-              image: imageUrl,
-            });
-          }
-        }
-        setNormalizedDishes(normalized);
-      } catch (error) {
-        console.error("Failed to fetch hotels/dishes:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchAll();
-  }, []);
+  const { data: groceryProducts = [], isLoading: productsLoading, isError: productsError } = useProducts({
+    storeId: selectedGroceryStore || undefined,
+    category: selectedGroceryCategory || undefined,
+    search: grocerySearch || undefined,
+    page: 1,
+    limit: 20,
+  });
 
   const handleAddDishToCart = (dish: Dish) => {
     // Defensive: Only allow if both dish.id and dish.hotelId are valid
@@ -162,62 +93,6 @@ const Index = () => {
       sectionRefs[catKey]?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
   };
-
-  // Fetch grocery stores on mount
-  React.useEffect(() => {
-    const fetchStores = async () => {
-      try {
-        setGroceryLoading(true);
-        const res = await getAllStores();
-        setGroceryStores(res.data.items || []);
-      } catch (err) {
-        toast.error('Failed to fetch stores');
-      } finally {
-        setGroceryLoading(false);
-      }
-    };
-    fetchStores();
-  }, []);
-
-  // Fetch grocery products when filters change
-  React.useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setGroceryLoading(true);
-        const params: Record<string, string | number> = {};
-        if (selectedGroceryStore) params.storeId = selectedGroceryStore;
-        if (selectedGroceryCategory) params.category = selectedGroceryCategory;
-        if (grocerySearch) params.search = grocerySearch;
-        params.page = 1;
-        params.limit = 20;
-        // Do NOT throw if storeId is missing; allow fetching all products
-        const res = await getProducts(params as {
-          storeId?: string;
-          category?: string;
-          search?: string;
-          page?: number;
-          limit?: number;
-        });
-        // Correct path: res.data.data.items
-        const normalizedProducts = (res.data.data.items || []).map((product) => {
-          const store = groceryStores.find(s => s._id === product.store);
-          return {
-            ...product,
-            id: product._id,
-            storeId: product.store,
-            storeName: store ? store.name : 'Unknown Store',
-          };
-        });
-        setGroceryProducts(normalizedProducts);
-      } catch (err) {
-        toast.error('Failed to fetch products');
-      } finally {
-        setGroceryLoading(false);
-      }
-    };
-    fetchProducts();
-  // Add groceryStores to dependency array
-  }, [selectedGroceryStore, selectedGroceryCategory, grocerySearch, groceryStores]);
 
   // Add handler for adding product to cart
   const handleAddProductToCart = React.useCallback((product: Product) => {
@@ -296,8 +171,8 @@ const Index = () => {
                 <WhatsOnYourMindSection
                   onCategorySelect={handleCategorySelect}
                   selectedCategory={selectedCategory}
-                  dishes={normalizedDishes}
-                  isLoading={isLoading}
+                  dishes={dishes}
+                  isLoading={dishesLoading}
                   onAddToCart={handleAddDishToCart}
                 />
                 {/* --- Enhanced Popular Restaurants Section (now more visually appealing & responsive) --- */}
@@ -316,7 +191,7 @@ const Index = () => {
                     </Link>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {isLoading ? (
+                    {dishesLoading ? (
                       Array.from({ length: 8 }).map((_, i) => (
                         <div key={i} className="flex flex-col bg-white rounded-xl shadow-lg border border-gray-100 p-4 animate-pulse">
                           <Skeleton className="w-full h-40 sm:h-48 md:h-52 mb-3" />
@@ -473,7 +348,7 @@ const Index = () => {
                 </select>
                 {/* Product Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {groceryLoading ? (
+                  {productsLoading ? (
                     Array.from({ length: 8 }).map((_, i) => (
                       <div key={i} className="flex flex-col bg-white rounded-lg shadow p-4 animate-pulse">
                         <Skeleton className="w-full h-32 mb-2" />

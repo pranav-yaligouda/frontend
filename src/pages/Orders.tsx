@@ -7,6 +7,8 @@ import { Order, OrderStatus } from "@/types/order";
 import { useAuth, UserRole } from "@/context/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import OrderProcessingService from "@/api/order";
+import { useOrders } from '@/hooks/useOrders';
+import { useQueryClient } from '@tanstack/react-query';
 
 // Toast component OUTSIDE Orders to avoid hook order issues
 const Toast = ({ message, onClose }: { message: string, onClose: () => void }) => (
@@ -18,62 +20,20 @@ const Toast = ({ message, onClose }: { message: string, onClose: () => void }) =
 
 const Orders = () => {
   const { user } = useAuth();
-  const [orders, setOrders] = React.useState<Order[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(10);
-  const [totalPages, setTotalPages] = React.useState(1);
   const [status, setStatus] = React.useState<OrderStatus | 'ALL'>('ALL');
+  const queryClient = useQueryClient();
+  const { data: orders = [], isLoading, isError } = useOrders({ user, page, pageSize, status });
   const [toastMsg, setToastMsg] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    if (!user) return;
-    setIsLoading(true);
-    setError(null);
-    const params: any = { page, pageSize };
-    if (status !== 'ALL') params.status = status;
-    const fetchOrders = user.role === UserRole.DELIVERY_AGENT
-      ? OrderProcessingService.fetchAvailableOrdersForAgent(params)
-      : OrderProcessingService.fetchOrdersByRole(params);
-    fetchOrders
-      .then((res) => {
-        let ordersArr: any[] = [];
-        if (Array.isArray(res.data)) {
-          ordersArr = res.data;
-        } else if (res.data && Array.isArray(res.data.items)) {
-          ordersArr = res.data.items;
-          setTotalPages(res.data.totalPages || 1);
-          // Optionally set pageSize, totalItems, etc. here if needed
-        } else {
-          console.warn('Orders API did not return an array or items array. Got:', res.data);
-        }
-        setOrders(ordersArr);
-        // If totalPages wasn't set above, fallback to res.totalPages
-        if (!res.data?.totalPages && res.totalPages) setTotalPages(res.totalPages);
-      })
-      .catch((err) => setError("Failed to fetch orders"))
-      .finally(() => setIsLoading(false));
-  }, [user, page, pageSize, status]);
-
-  // Robust real-time: fetch business IDs for hotel_manager/store_owner
+  // WebSocket subscription for real-time updates:
   React.useEffect(() => {
     if (!user) return;
     let unsubscribed = false;
     const handleOrderUpdate = (order: Order) => {
-      setOrders((prev) => {
-        const idx = prev.findIndex((o) => o.id === order.id);
-        if (idx !== -1) {
-          const updated = [...prev];
-          updated[idx] = order;
-          return updated;
-        } else {
-          if (user.role === UserRole.HOTEL_MANAGER || user.role === UserRole.STORE_OWNER) {
-            setToastMsg(`New order received! #${order.id?.substring(0,8)}`);
-          }
-          return [order, ...prev];
-        }
-      });
+      // Invalidate orders query to refetch latest data
+      queryClient.invalidateQueries({ queryKey: ['orders', user?.role, page, pageSize, status] });
     };
     async function joinBusinessRooms() {
       if (user.role === UserRole.HOTEL_MANAGER) {
@@ -102,7 +62,7 @@ const Orders = () => {
       unsubscribed = true;
       OrderProcessingService.unsubscribeFromOrderUpdates();
     };
-  }, [user]);
+  }, [user, page, pageSize, status, queryClient]);
 
   React.useEffect(() => {
     if (toastMsg) {
@@ -171,8 +131,8 @@ const Orders = () => {
             <Skeleton key={index} className="w-full h-40" />
           ))}
         </div>
-      ) : error ? (
-        <div className="py-12 text-center text-red-500">{error}</div>
+      ) : isError ? (
+        <div className="py-12 text-center text-red-500">Failed to fetch orders</div>
       ) : orders.length === 0 ? (
         <div className="py-12 text-center">
           <h2 className="mb-2 text-xl font-medium">No Orders Yet</h2>
@@ -206,11 +166,11 @@ const Orders = () => {
             >
               Previous
             </button>
-            <span className="px-3 py-1">Page {page} of {totalPages}</span>
+            <span className="px-3 py-1">Page {page} of {orders.length === 0 ? 1 : Math.ceil(orders.length / pageSize)}</span>
             <button
               className="px-3 py-1 rounded border disabled:opacity-50"
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
+              onClick={() => setPage(p => Math.min(orders.length === 0 ? 1 : Math.ceil(orders.length / pageSize), p + 1))}
+              disabled={page === orders.length === 0 ? 1 : Math.ceil(orders.length / pageSize)}
             >
               Next
             </button>

@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import RouteMap from "../delivery/RouteMap";
 import OrderProcessingService from "@/api/order";
+import { useOrder } from '@/hooks/useOrder';
 
 interface OrderDetailsProps {
   orderId: string;
@@ -25,28 +26,7 @@ interface OrderDetailsProps {
 }
 
 const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
-  const [order, setOrder] = React.useState<Order | null>(null);
-  const [isLoading, setIsLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    const fetchOrderDetails = async () => {
-      setIsLoading(true);
-      try {
-        const orderData = await OrderProcessingService.fetchOrderById(orderId);
-        if (orderData) {
-          setOrder(orderData);
-        }
-      } catch (error) {
-        console.error("Failed to fetch order details:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (orderId) {
-      fetchOrderDetails();
-    }
-  }, [orderId]);
+  const { data: order, isLoading, isError } = useOrder(orderId);
 
   if (isLoading) {
     return (

@@ -17,7 +17,7 @@ export class OrderProcessingService {
    * @param items Items in the cart
    * @returns Allocated items by store
    */
-  // All allocation and stock validation is now handled by the backend API.
+  // All allocation and stock validation is handled by the backend API.
 
 
   /**
@@ -236,6 +236,10 @@ else if (typeof params.pageSize === 'number') query.append('pageSize', String(pa
       throw error;
     }
   }
+}
+
+export function getOrderById(orderId: string) {
+  return OrderProcessingService.fetchOrderById(orderId);
 }
 
 export default OrderProcessingService;
