@@ -140,12 +140,22 @@ function dispatch(action: Action) {
 type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
-  const id = genId()
+  const id = genId();
+
+  // Defensive: stringify non-string title/description
+  let safeTitle = props.title;
+  let safeDescription = props.description;
+  if (typeof safeTitle === 'object' && safeTitle !== null) {
+    safeTitle = JSON.stringify(safeTitle);
+  }
+  if (typeof safeDescription === 'object' && safeDescription !== null) {
+    safeDescription = JSON.stringify(safeDescription);
+  }
 
   const update = (props: ToasterToast) =>
     dispatch({
       type: "UPDATE_TOAST",
-      toast: { ...props, id },
+      toast: { ...props, id, title: safeTitle, description: safeDescription },
     })
   const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
 
@@ -155,6 +165,8 @@ function toast({ ...props }: Toast) {
       ...props,
       id,
       open: true,
+      title: safeTitle,
+      description: safeDescription,
       onOpenChange: (open) => {
         if (!open) dismiss()
       },

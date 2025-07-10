@@ -16,6 +16,7 @@ export type OrderStatus =
   | 'READY_FOR_PICKUP'
   | 'ACCEPTED_BY_AGENT'
   | 'PICKED_UP'
+  | 'OUT_FOR_DELIVERY'
   | 'DELIVERED'
   | 'CANCELLED'
   | 'REJECTED';
@@ -47,4 +48,5 @@ export interface Order {
   total: number;
   storeIds?: string[];
   paymentStatus?: string;
+  timestamps?: Record<string, string | number | Date>;
 }

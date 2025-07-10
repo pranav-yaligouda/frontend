@@ -8,6 +8,7 @@ const STATUS_STEPS: { status: OrderStatus; label: string }[] = [
   { status: "READY_FOR_PICKUP", label: "Ready" },
   { status: "ACCEPTED_BY_AGENT", label: "Agent Accepted" },
   { status: "PICKED_UP", label: "Picked Up" },
+  { status: "OUT_FOR_DELIVERY", label: "Out for Delivery" },
   { status: "DELIVERED", label: "Delivered" },
   { status: "CANCELLED", label: "Cancelled" },
   { status: "REJECTED", label: "Rejected" },

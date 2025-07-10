@@ -40,7 +40,7 @@ const Deliveries = () => {
     isError,
     error,
     refetch,
-  } = useOrders({ user, status: undefined });
+  } = useOrders({ user, page: 1, pageSize: 20, status: undefined });
 
   React.useEffect(() => {
     if (!agent || agent.role !== 'delivery_agent') return;
@@ -77,18 +77,34 @@ const Deliveries = () => {
   const isActive = (order) => order.status === "OUT_FOR_DELIVERY";
 
   // Action handlers
-  const handleOrderAction = async (action, order) => {
+  // Update handleOrderAction to support 'out_for_delivery'
+  const handleOrderAction = async (action: 'accept' | 'pickup' | 'out_for_delivery' | 'deliver', order) => {
     try {
-      if (action === "accept" || action === "pickup") {
-        await orderServiceUpdate(order._id, "OUT_FOR_DELIVERY");
+      if (action === "accept") {
+        await orderServiceUpdate(order._id, "ACCEPTED_BY_AGENT");
+        toast.success("Order accepted successfully");
+      } else if (action === "pickup") {
+        await orderServiceUpdate(order._id, "PICKED_UP");
         toast.success("Order picked up successfully");
+      } else if (action === "out_for_delivery") {
+        await orderServiceUpdate(order._id, "OUT_FOR_DELIVERY");
+        toast.success("Order is now out for delivery");
       } else if (action === "deliver") {
         await orderServiceUpdate(order._id, "DELIVERED");
-      toast.success("Order delivered successfully");
+        toast.success("Order delivered successfully");
       }
       refetch();
     } catch (err) {
-      toast.error("Failed to update order status");
+      let message = "Failed to update order status";
+      if (err && typeof err === 'object') {
+        const errorObj = err as Record<string, unknown>;
+        if ('formErrors' in errorObj || 'fieldErrors' in errorObj) {
+          message = JSON.stringify(errorObj.formErrors || errorObj.fieldErrors);
+        } else if (err instanceof Error && err.message) {
+          message = err.message;
+        }
+      }
+      toast.error(message);
     }
   };
 
@@ -121,7 +137,7 @@ const Deliveries = () => {
       <div className="container px-4 py-8 mx-auto text-center">
         <h1 className="mb-4 text-2xl font-bold">Error Loading Deliveries</h1>
         <p className="mb-6 text-gray-600">{error?.message || "An error occurred while fetching orders."}</p>
-        <Button onClick={refetch}>Retry</Button>
+        <Button onClick={() => refetch()}>Retry</Button>
       </div>
     );
   }
@@ -177,7 +193,7 @@ const Deliveries = () => {
                   return (
                     <SelectItem key={orderId} value={orderId}>
                       Order #{orderId.toString().substring(0, 8)}
-                    </SelectItem>
+                  </SelectItem>
                   );
                 })}
               </SelectContent>

@@ -3,6 +3,7 @@ import { OrderProcessingService } from '@/api/order';
 import { useEffect } from 'react';
 
 export function useOrders({ user, page, pageSize, status }) {
+  const enabled = !!user && (user.role !== 'delivery_agent' || (user.isOnline && user.verificationStatus === 'verified'));
   const query = useQuery({
     queryKey: ['orders', user?.role, page, pageSize, status],
     queryFn: () => {
@@ -12,7 +13,7 @@ export function useOrders({ user, page, pageSize, status }) {
       }
       return OrderProcessingService.fetchOrdersByRole(params).then(res => Array.isArray(res.data?.items) ? res.data.items : []);
     },
-    enabled: !!user,
+    enabled,
     staleTime: 60 * 1000,
   });
 

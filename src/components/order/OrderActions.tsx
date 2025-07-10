@@ -8,25 +8,30 @@ import { toast } from "sonner";
 interface OrderActionsProps {
   order: Order;
   userRole: UserRole;
-  onAction?: (action: "accept" | "reject" | "cancel", order: Order) => Promise<void>;
+  onAction?: (action: "accept" | "reject" | "cancel" | "preparing", order: Order) => Promise<void>;
 }
 
 const OrderActions: React.FC<OrderActionsProps> = ({ order, userRole, onAction }) => {
-  const [loading, setLoading] = React.useState<"accept" | "reject" | "cancel" | null>(null);
+  const [loading, setLoading] = React.useState<"accept" | "reject" | "cancel" | "preparing" | null>(null);
   const [confirm, setConfirm] = React.useState<null | "cancel" | "reject" | "accept">(null);
 
   // Helper to handle actions with confirmation and error handling
-  const handleAction = async (action: "accept" | "reject" | "cancel") => {
+  const handleAction = async (action: "accept" | "reject" | "cancel" | "preparing") => {
     setLoading(action);
     try {
-      await onAction?.(action, order);
-      toast.success(
-        action === "accept"
-          ? "Order accepted successfully"
-          : action === "reject"
-          ? "Order rejected"
-          : "Order cancelled"
-      );
+      if (action === "preparing") {
+        await onAction?.("preparing", order);
+        toast.success("Order marked as preparing");
+      } else {
+        await onAction?.(action, order);
+        toast.success(
+          action === "accept"
+            ? "Order accepted successfully"
+            : action === "reject"
+            ? "Order rejected"
+            : "Order cancelled"
+        );
+      }
     } catch (err) {
       const message = typeof err === 'string' ? err : (err as Error)?.message || 'Failed to update order status';
       toast.error(message);
@@ -58,7 +63,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({ order, userRole, onAction }
             </DialogHeader>
             <div className="flex gap-2 mt-4 justify-end">
               <Button variant="outline" onClick={() => setConfirm(null)} disabled={loading === "cancel"}>No</Button>
-              <Button variant="destructive" onClick={() => handleAction("cancel") } loading={loading === "cancel"}>Yes, Cancel</Button>
+              <Button variant="destructive" onClick={() => handleAction("cancel") } disabled={loading === "cancel"}>Yes, Cancel</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -101,7 +106,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({ order, userRole, onAction }
               <Button
                 variant={confirm === "accept" ? "default" : "destructive"}
                 onClick={() => handleAction(confirm!)}
-                loading={loading === confirm}
+                disabled={loading === confirm}
               >
                 Yes, {confirm === "accept" ? "Accept" : "Reject"}
               </Button>
@@ -109,6 +114,14 @@ const OrderActions: React.FC<OrderActionsProps> = ({ order, userRole, onAction }
           </DialogContent>
         </Dialog>
       </>
+    );
+  }
+  // Show 'Start Packing' for hotel/store owner after accepting
+  if ((userRole === "hotel_manager" || userRole === "store_owner") && order.status === "ACCEPTED_BY_VENDOR") {
+    return (
+      <Button size="sm" onClick={() => handleAction("preparing")} disabled={loading === "preparing"}>
+        Start Packing
+      </Button>
     );
   }
   // ...other actions based on status/role (add as needed)
