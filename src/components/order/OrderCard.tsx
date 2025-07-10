@@ -1,82 +1,68 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
-import { Order } from "@/data/models";
 import { UserRole } from "@/context/AuthContext";
 import OrderStatusBadge from "./OrderStatusBadge";
+import OrderTimeline from "./OrderTimeline";
+import OrderActions from "./OrderActions";
+import type { Order } from "@/types/order";
 
 interface OrderCardProps {
   order: Order;
   userRole: UserRole;
+  onAction?: (action: string, order: Order) => void;
 }
 
-const OrderCard: React.FC<OrderCardProps> = ({ order, userRole }) => {
-  // Role-based actions (to be implemented: accept, mark as ready, deliver, etc.)
-  const renderActions = () => {
-    switch (userRole) {
-      case UserRole.HOTEL_MANAGER:
-      case UserRole.STORE_OWNER:
-        if (order.status === "pending") {
-          return <button className="btn-primary">Accept & Start Preparing</button>;
-        }
-        if (order.status === "confirmed" || order.status === "preparing") {
-          return <button className="btn-secondary">Mark as Ready for Pickup</button>;
-        }
-        break;
-      case UserRole.DELIVERY_AGENT:
-        if (order.status === "ready") {
-          return <button className="btn-primary">Accept Delivery</button>;
-        }
-        if (order.status === "out_for_delivery") {
-          return <button className="btn-secondary">Mark as Picked Up</button>;
-        }
-        if (order.status === "delivered") {
-          return <button className="btn-success">Mark as Delivered</button>;
-        }
-        break;
-      default:
-        return null;
-    }
-  };
+const OrderCard: React.FC<OrderCardProps> = ({ order, userRole, onAction }) => {
+  // Defensive: fallback for missing fields
+  const orderId = order.id ?? order._id ?? '';
+  const orderTotal = typeof order.total === 'number'
+    ? order.total
+    : Array.isArray(order.items)
+      ? order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+      : 0;
+  const createdAt = order.createdAt ? new Date(order.createdAt).toLocaleString() : '';
 
+  // Responsive, modern card layout
   return (
-    <div className="rounded-lg border bg-white shadow-sm p-4 flex flex-col justify-between h-full">
-        <div>
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-semibold">
-            Order #{(order.id ?? order._id ?? '').toString().substring(0, 8)}
-          </h2>
+    <div className="rounded-xl border bg-white shadow-md p-4 flex flex-col gap-3 h-full transition hover:shadow-lg focus-within:ring-2 focus-within:ring-primary/50">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-lg truncate">Order #{orderId.toString().substring(0, 8)}</span>
           <OrderStatusBadge status={order.status} />
         </div>
-        <div className="mb-2 text-sm text-gray-600">
-          Placed: {new Date(order.createdAt).toLocaleString()}
+        <span className="text-xs text-gray-500">{createdAt}</span>
         </div>
-        <div className="mb-2 text-sm">
+      <OrderTimeline status={order.status} timestamps={order.timestamps} />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-2">
+        <div className="flex-1 min-w-0">
+          <div className="text-sm text-gray-700 mb-1">
           <span className="font-medium">Items:</span> {order.items.length}
         </div>
-        <div className="mb-2 text-sm">
-          <span className="font-medium">Total:</span> ₹{typeof order.total === 'number' ? order.total : (Array.isArray(order.items) ? order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) : 0)}
+          <div className="text-sm text-gray-700 mb-1">
+            <span className="font-medium">Total:</span> ₹{orderTotal.toFixed(2)}
       </div>
         {userRole === UserRole.CUSTOMER && (
-          <div className="mb-2 text-sm">
+            <div className="text-sm text-gray-700 mb-1">
             <span className="font-medium">Delivery Address:</span> {order.deliveryAddress?.addressLine ?? ''}
           </div>
         )}
         {(userRole === UserRole.HOTEL_MANAGER || userRole === UserRole.STORE_OWNER) && (
-          <div className="mb-2 text-sm">
+            <div className="text-sm text-gray-700 mb-1">
             <span className="font-medium">Customer:</span> {order.customerId}
           </div>
         )}
-        {userRole === UserRole.DELIVERY_AGENT && (
-          <div className="mb-2 text-sm">
-            <span className="font-medium">Pickup:</span> {order.storeIds?.join(", ")}
           </div>
-        )}
-      </div>
-      <div className="mt-4 flex flex-col gap-2">
-        <Link to={`/orders/${order.id}`} className="btn-outline w-full text-center">
+        <div className="flex flex-col gap-2 items-end min-w-[120px]">
+          <Link
+            to={`/order/${orderId}`}
+            className="inline-block px-4 py-2 rounded-lg border border-primary text-primary font-semibold text-sm hover:bg-primary hover:text-white transition text-center w-full"
+            tabIndex={0}
+            aria-label={`View details for order ${orderId}`}
+          >
             View Details
         </Link>
-        {renderActions()}
+          <OrderActions order={order} userRole={userRole} onAction={onAction} />
+        </div>
       </div>
     </div>
   );

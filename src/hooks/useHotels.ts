@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getAllHotels } from '@/api/hotelApi';
+import { getAllHotels, getMyHotel } from '@/api/hotelApi';
 
 export function useHotels() {
   const { data, isLoading, isError } = useQuery({
@@ -16,4 +16,14 @@ export function useHotels() {
     refetchOnWindowFocus: true,
   });
   return { data: data || [], isLoading, isError };
+}
+
+// Robust hook for hotel manager's own hotel profile
+export function useMyHotel() {
+  return useQuery({
+    queryKey: ['myHotel'],
+    queryFn: getMyHotel,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+  });
 } 

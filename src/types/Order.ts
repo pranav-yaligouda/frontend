@@ -26,6 +26,7 @@ export interface Address {
 }
 
 export interface Order {
+  _id?: string;
   storePins?: { [storeId: string]: string };
   deliveryInstructions?: string;
   verificationPin?: string;

@@ -23,3 +23,10 @@ export async function getAllStores(params?: { search?: string; page?: number; li
   return data;
 }
 
+// Add a product to a store's inventory
+export async function addProductToStore(storeId: string, data: any) {
+  // Adjust the endpoint as per your backend route
+  const res = await API.post(`/stores/${storeId}/products`, data);
+  return res.data;
+}
+

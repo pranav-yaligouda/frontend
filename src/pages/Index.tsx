@@ -18,6 +18,8 @@ import ProductCard from "@/components/product/ProductCard";
 import type { Product } from "@/types/product";
 import type { Store } from "@/types/store";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getAllStoreProducts } from '@/api/product';
+import ProductGrid from "@/components/product/ProductGrid";
 
 
 const PRODUCT_CATEGORIES = [
@@ -48,13 +50,34 @@ const Index = () => {
   const [selectedGroceryCategory, setSelectedGroceryCategory] = React.useState('');
   const [selectedGroceryStore, setSelectedGroceryStore] = React.useState<string | null>(null);
   const [grocerySearch, setGrocerySearch] = React.useState('');
-  const { data: groceryProducts = [], isLoading: productsLoading, isError: productsError } = useProducts({
-    storeId: selectedGroceryStore || undefined,
-    category: selectedGroceryCategory || undefined,
-    search: grocerySearch || undefined,
-    page: 1,
-    limit: 20,
-  });
+  const [storeInventory, setStoreInventory] = React.useState<Product[]>([]);
+  const [productsLoading, setProductsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    setProductsLoading(true);
+    getAllStoreProducts()
+      .then(res => {
+        if (res.data && res.data.data && Array.isArray(res.data.data.items)) {
+          setStoreInventory(
+            res.data.data.items.map(product => ({
+              ...product,
+              id: product._id?.toString() || product.id,
+              storeId: product.storeId?.toString() || product.storeId,
+            }))
+          );
+        } else {
+          setStoreInventory([]);
+          if (res.data && 'error' in res.data && typeof res.data.error === 'string') {
+            console.error('Store products error:', res.data.error);
+          }
+        }
+      })
+      .catch(err => {
+        setStoreInventory([]);
+        console.error('Store products fetch failed:', err);
+      })
+      .finally(() => setProductsLoading(false));
+  }, []);
 
   const handleAddDishToCart = (dish: Dish) => {
     // Defensive: Only allow if both dish.id and dish.hotelId are valid
@@ -346,31 +369,13 @@ const Index = () => {
                     <option key={store._id} value={store._id}>{store.name}</option>
                   ))}
                 </select>
-                {/* Product Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {productsLoading ? (
-                    Array.from({ length: 8 }).map((_, i) => (
-                      <div key={i} className="flex flex-col bg-white rounded-lg shadow p-4 animate-pulse">
-                        <Skeleton className="w-full h-32 mb-2" />
-                        <Skeleton className="w-1/2 h-4 mb-2" />
-                        <Skeleton className="w-1/3 h-6 mb-2" />
-                        <Skeleton className="w-full h-10 mb-2" />
-                        <Skeleton className="w-full h-10" />
-                      </div>
-                    ))
-                  ) : groceryProducts.length === 0 ? (
-                    <div className="col-span-full text-center text-gray-400 py-8">No products found.</div>
-                  ) : (
-                    groceryProducts.map(product => (
-                      <ProductCard
-                        key={product.id}
-                        product={product}
+                {/* Filter for available products */}
+                <ProductGrid
+                  products={storeInventory}
+                  storeInventory={storeInventory}
+                  isLoading={productsLoading}
                         addToCart={handleAddProductToCart}
-                        onQuickView={handleQuickView}
                       />
-                    ))
-                  )}
-                </div>
                 {/* Store Grid */}
                 <div className="mt-8">
                   <h3 className="text-lg font-semibold mb-2">Popular Stores</h3>

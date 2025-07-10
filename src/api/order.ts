@@ -155,15 +155,21 @@ else if (typeof params.pageSize === 'number') query.append('pageSize', String(pa
     try {
       const query = new URLSearchParams();
       if (typeof params.page === 'string') query.append('page', params.page);
-else if (typeof params.page === 'number') query.append('page', String(params.page));
+      else if (typeof params.page === 'number') query.append('page', String(params.page));
       if (typeof params.pageSize === 'string') query.append('pageSize', params.pageSize);
-else if (typeof params.pageSize === 'number') query.append('pageSize', String(params.pageSize));
+      else if (typeof params.pageSize === 'number') query.append('pageSize', String(params.pageSize));
       if (params.status) query.append('status', params.status);
       if (params.dateFrom) query.append('dateFrom', params.dateFrom);
       if (params.dateTo) query.append('dateTo', params.dateTo);
       const response = await API.get(`/orders/available/agent?${query.toString()}`);
       if (response.data && response.data.success) {
-        return response.data;
+        // Defensive: always return { items: [...] }
+        if (Array.isArray(response.data.data?.items)) {
+          return response.data;
+        } else if (Array.isArray(response.data.data)) {
+          return { ...response.data, data: { items: response.data.data } };
+        }
+        return { ...response.data, data: { items: [] } };
       } else {
         throw new Error(response.data.error || 'Failed to fetch available orders');
       }
@@ -198,7 +204,7 @@ else if (typeof params.pageSize === 'number') query.append('pageSize', String(pa
 
   static async updateOrderStatus(orderId: string, status: string) {
     try {
-      const response = await API.patch(`/api/v1/orders/${orderId}/status`, { status });
+      const response = await API.patch(`/orders/${orderId}/status`, { status });
       if (response.data && response.data.success) {
         return response.data.data;
       } else {

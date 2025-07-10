@@ -21,3 +21,15 @@ export const deleteProduct = (id: string) =>
 export const getProductById = (id: string) =>
   API.get<{ data: Product }>(`/products/${id}`)
     .then(res => res.data.data);
+
+// Fetch global product catalog (for all stores)
+export const getCatalogProducts = (params: { category?: string; search?: string; page?: number; limit?: number } = {}) =>
+  API.get<{ data: { items: Product[]; total: number } }>('/products', { params });
+
+// Fetch products for a specific store (store inventory)
+export const getStoreProducts = (storeId: string, params: { category?: string }) =>
+  API.get<{ data: { items: Product[] } }>(`/stores/${storeId}/products`, { params });
+
+// Fetch all products available in any store (store inventory)
+export const getAllStoreProducts = () =>
+  API.get<{ data: { items: Product[] } }>('/products/store-products');

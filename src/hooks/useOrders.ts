@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { OrderProcessingService } from '@/api/order';
+import { useEffect } from 'react';
 
 export function useOrders({ user, page, pageSize, status }) {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['orders', user?.role, page, pageSize, status],
     queryFn: () => {
       const params = { page, pageSize, status };
@@ -14,4 +15,18 @@ export function useOrders({ user, page, pageSize, status }) {
     enabled: !!user,
     staleTime: 60 * 1000,
   });
+
+  // Real-time updates: subscribe to order:status events
+  useEffect(() => {
+    if (!user) return;
+    const onUpdate = () => {
+      query.refetch();
+    };
+    OrderProcessingService.subscribeToOrderUpdates(user._id, undefined, onUpdate);
+    return () => {
+      OrderProcessingService.unsubscribeFromOrderUpdates();
+    };
+  }, [user, query.refetch]);
+
+  return query;
 } 

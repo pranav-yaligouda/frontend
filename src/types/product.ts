@@ -20,4 +20,6 @@ export interface Product {
     isNew?: boolean;
     isBestseller?: boolean;
     rating?: number;
+    quantity?: number; // for store inventory
+    storeProductId?: string; // for store inventory
 }

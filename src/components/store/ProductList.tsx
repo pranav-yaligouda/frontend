@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useEffect, useState } from 'react';
-import { getProducts, deleteProduct } from '@/api/product';
+import { getStoreProducts, deleteProduct } from '@/api/product';
 import { Product } from '@/types/product';
 import ProductCard from './ProductCard';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ const ProductList: React.FC<ProductListProps> = ({ storeId, categories, onEdit }
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res = await getProducts({ storeId, category: category || undefined });
+      const res = await getStoreProducts(storeId, { category: category || undefined });
       setProducts(res.data.data.items);
     } catch (error) {
       // Error toast is handled globally
