@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Star, Clock, MapPin, ChevronLeft, Plus, Minus, Search } from "lucide-react";
-import { useCart } from "@/context/CartContext";
+import { useCart } from "@/context/useCart";
 import { toast } from "sonner";
 
 import { DISH_CATEGORIES } from "@/constants/dishCategorization";
