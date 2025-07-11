@@ -156,7 +156,7 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
                   className="flex overflow-x-auto gap-4 no-scrollbar snap-x snap-mandatory pb-2"
                   tabIndex={0}
                   aria-label="Dishes"
-                  style={{ WebkitOverflowScrolling: 'touch' }}
+                  style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none', overflow: 'auto', overscrollBehaviorX: 'contain' }}
                 >
                   {dishColumns.map((column: Dish[], colIdx: number) => (
                     <div
@@ -171,7 +171,7 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
                           style={{ flex: '0 0 auto' }}
                         >
                           {/* Dish Image */}
-                          <div className="relative w-full" style={{ height: '60%', minHeight: '60%' }}>
+                          <div className="relative w-full" style={{ height: '70%', minHeight: '70%' }}>
                             <img
                               src={(() => {
                                 const staticBase = import.meta.env.VITE_STATIC_URL;
@@ -195,51 +195,46 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
                             <div className="absolute top-3 right-3 bg-white/90 px-3 py-1 rounded-full text-athani-900 font-bold shadow text-sm">
                               ₹{dish.price}
                             </div>
-                            {/* Offer badge example */}
-                            <div className="absolute top-3 left-3 bg-yellow-300 text-red-700 font-extrabold px-2 py-1 rounded shadow text-xs">
-                              FLAT 50% OFF
-                            </div>
                           </div>
                           {/* Dish Details */}
-                          <div className="flex-1 flex flex-col p-2 gap-0 justify-between">
+                          <div className="flex-1 flex flex-col p-2 gap-0 justify-between relative">
                             {/* Dish Name and Add to Cart Button Inline */}
-                            <div className="flex items-center justify-between mb-0.5 gap-2">
-                              <div className="text-base font-bold text-gray-900 truncate">{dish.name}</div>
-                              {onAddToCart && (
-                                cart[dish.id] ? (
-                                  <div className="flex items-center gap-1 bg-cyan-700 rounded-lg px-2 py-0.5">
-                                    <button
-                                      className="text-white p-0.5 hover:bg-cyan-800 rounded"
-                                      style={{ fontSize: '1rem', lineHeight: 1 }}
-                                      onClick={() => handleRemove(dish)}
-                                      aria-label="Decrease quantity"
-                                    >
-                                      <Minus size={16} />
-                                    </button>
-                                    <span className="text-white font-semibold text-sm px-1 min-w-[1.5em] text-center">{cart[dish.id]}</span>
-                                    <button
-                                      className="text-white p-0.5 hover:bg-cyan-800 rounded"
-                                      style={{ fontSize: '1rem', lineHeight: 1 }}
-                                      onClick={() => handleAdd(dish)}
-                                      aria-label="Increase quantity"
-                                    >
-                                      <Plus size={16} />
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <button
-                                    className="ml-2 flex items-center gap-1 px-2 py-1 bg-cyan-700 hover:bg-cyan-800 text-white rounded-lg font-semibold text-xs shadow transition-all whitespace-nowrap"
-                                    style={{ minHeight: '1.8rem', minWidth: 'auto', padding: '0 0.5rem' }}
-                                    onClick={() => handleAdd(dish)}
-                                  >
-                                    <ShoppingCart size={16} className="mr-1" />
-                                    Add
-                                  </button>
-                                )
-                              )}
-                            </div>
+                            <div className="text-base font-bold text-gray-900 truncate mb-0.5">{dish.name}</div>
                             {/* Only time, directly below dish name, minimal space */}
                             <div className="text-xs text-gray-500 leading-tight mt-0.5 mb-0">25–30 mins</div>
+                            {/* Cart Button/Quantity - absolutely positioned bottom right */}
+                            {onAddToCart && (
+                              cart[dish.id] ? (
+                                <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-cyan-700 rounded-full px-2 py-1 shadow-lg">
+                                  <button
+                                    className="text-white p-0.5 hover:bg-cyan-800 rounded"
+                                    style={{ fontSize: '1rem', lineHeight: 1 }}
+                                    onClick={() => handleRemove(dish)}
+                                    aria-label="Decrease quantity"
+                                  >
+                                    <Minus size={16} />
+                                  </button>
+                                  <span className="text-white font-semibold text-sm px-1 min-w-[1.5em] text-center">{cart[dish.id]}</span>
+                                  <button
+                                    className="text-white p-0.5 hover:bg-cyan-800 rounded"
+                                    style={{ fontSize: '1rem', lineHeight: 1 }}
+                                    onClick={() => handleAdd(dish)}
+                                    aria-label="Increase quantity"
+                                  >
+                                    <Plus size={16} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  className="absolute bottom-2 right-2 flex items-center justify-center bg-cyan-700 hover:bg-cyan-800 text-white rounded-full shadow-lg transition-all"
+                                  style={{ width: '2.4rem', height: '2.4rem' }}
+                                  onClick={() => handleAdd(dish)}
+                                  aria-label="Add to cart"
+                                >
+                                  <ShoppingCart size={18} />
+                                </button>
+                              )
+                            )}
                           </div>
                         </div>
                       ))}
