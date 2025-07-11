@@ -78,7 +78,7 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
   // Remove local cart state and handlers
 
   return (
-    <section className="pt-0 pb-0 bg-white w-full m-0 p-0">
+    <section className="pt-0 pb-0 bg-white w-full m-0 p-0 ml-2 sm:ml-4">
       <h2 className="text-2xl font-bold mb-3">What's on your mind?</h2>
       {/* Horizontal scrollable meal types (category selector) */}
       <div className="flex overflow-x-auto gap-4 no-scrollbar py-2 bg-white" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
