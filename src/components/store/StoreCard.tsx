@@ -6,6 +6,11 @@ interface StoreCardProps {
   store: Store;
 }
 
+// Type guard for backend compatibility
+function hasMongoId(store: Store): store is Store & { _id: string } {
+  return typeof (store as { _id?: unknown })._id === 'string';
+}
+
 const StoreCard = ({ store }: StoreCardProps) => {
   // Helper to normalize timings/openingHours to an array
   const getOpeningHoursArray = () => {
@@ -47,7 +52,7 @@ const StoreCard = ({ store }: StoreCardProps) => {
   };
 
   return (
-    <Link to={`/store/${store._id || store.id || ''}`} tabIndex={0} aria-label={`View store: ${store.name}`}>
+    <Link to={`/store/${hasMongoId(store) ? store._id : store.id || ''}`} tabIndex={0} aria-label={`View store: ${store.name}`}>
       <div className="group bg-white rounded-3xl shadow-lg border border-athani-100 overflow-hidden transition-transform duration-200 hover:scale-[1.025] hover:shadow-2xl flex flex-col h-full">
         {/* Image with overlay and open/closed badge */}
         <div className="relative h-44 sm:h-52 md:h-56 w-full overflow-hidden">

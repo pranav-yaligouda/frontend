@@ -3,6 +3,7 @@ import type { OrderStatus } from "@/types/order";
 
 interface OrderStatusBadgeProps {
   status: OrderStatus;
+  className?: string;
 }
 
 const statusColors: Record<OrderStatus, string> = {
@@ -31,9 +32,9 @@ const statusLabels: Record<OrderStatus, string> = {
   REJECTED: "Rejected",
 };
 
-const OrderStatusBadge = ({ status }: OrderStatusBadgeProps) => {
+const OrderStatusBadge = ({ status, className }: OrderStatusBadgeProps) => {
   return (
-    <Badge className={`${statusColors[status]} font-normal`}>
+    <Badge className={`${statusColors[status]} font-normal ${className ?? ''}`.trim()}>
       {statusLabels[status]}
     </Badge>
   );

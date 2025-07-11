@@ -19,12 +19,13 @@ const StickyCartBar: React.FC = () => {
   return (
     <div
       className="
-        fixed bottom-16 left-0 w-full z-50
+        fixed bottom-20 left-0 w-full z-40
         flex items-center justify-between
         bg-white shadow-lg border-t border-gray-200
         px-4 py-3
         animate-slide-up
         md:max-w-md md:mx-auto md:left-1/2 md:-translate-x-1/2 md:rounded-full md:bottom-6 md:w-auto
+        safe-area-inset-bottom
       "
       style={{ pointerEvents: "auto" }}
       role="region"

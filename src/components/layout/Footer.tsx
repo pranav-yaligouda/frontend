@@ -20,82 +20,82 @@ const MobileFooterNav = () => {
   } else if (hasRole([UserRole.STORE_OWNER])) {
     dashboardIcon = <Store className="w-6 h-6" />;
     dashboardLabel = "Store";
-    dashboardRoute = "/storefront";
+    dashboardRoute = "/store-dashboard";
   }
 
   if (!user) {
     return (
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-lg flex justify-around items-center py-2 md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg flex justify-around items-center py-3 px-4 md:hidden safe-area-inset-bottom">
         <button
-          className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none"
+          className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg p-2 transition-colors"
           onClick={() => navigate("/login")}
         >
-          <User className="w-6 h-6 mb-0.5" />
-          <span>Login/Register</span>
+          <User className="w-6 h-6 mb-1" />
+          <span className="font-medium">Login/Register</span>
         </button>
       </nav>
     );
   }
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-lg flex justify-around items-center py-2 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg flex justify-around items-center py-3 px-4 md:hidden safe-area-inset-bottom">
       <button
-        className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none"
+        className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg p-2 transition-colors"
         onClick={() => navigate("/")}
       >
-        <Home className="w-6 h-6 mb-0.5" />
-        <span>Home</span>
+        <Home className="w-6 h-6 mb-1" />
+        <span className="font-medium">Home</span>
       </button>
       {hasRole([UserRole.DELIVERY_AGENT]) ? (
         <>
           <button
-            className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none"
+            className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg p-2 transition-colors"
             onClick={() => navigate("/deliveries")}
             aria-label="Deliveries"
           >
-            <Truck className="w-6 h-6" />
-            <span>Deliveries</span>
+            <Truck className="w-6 h-6 mb-1" />
+            <span className="font-medium">Deliveries</span>
           </button>
           <button
-            className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none"
+            className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg p-2 transition-colors"
             onClick={() => navigate("/delivery-dashboard")}
             aria-label="Dashboard"
           >
-            <Truck className="w-6 h-6" />
-            <span>Dashboard</span>
+            <Truck className="w-6 h-6 mb-1" />
+            <span className="font-medium">Dashboard</span>
           </button>
         </>
       ) : (
         <button
-          className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none"
+          className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg p-2 transition-colors"
           onClick={() => navigate(dashboardRoute)}
           aria-label={dashboardLabel}
         >
           {dashboardIcon}
-          <span>{dashboardLabel}</span>
+          <span className="font-medium">{dashboardLabel}</span>
         </button>
       )}
       {isCustomer && (
         <button
-          className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none"
+          className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg p-2 transition-colors"
           onClick={() => navigate("/stores")}
         >
-          <Store className="w-6 h-6 mb-0.5" />
-          <span>Stores</span>
+          <Store className="w-6 h-6 mb-1" />
+          <span className="font-medium">Stores</span>
         </button>
       )}
       <button
-        className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none"
+        className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg p-2 transition-colors"
         onClick={() => navigate("/orders")}
       >
-        <ClipboardList className="w-6 h-6 mb-0.5" />
-        <span>Orders</span>
+        <ClipboardList className="w-6 h-6 mb-1" />
+        <span className="font-medium">Orders</span>
       </button>
       <button
-        className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none"
+        className="flex flex-col items-center text-xs text-gray-700 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg p-2 transition-colors"
         onClick={() => navigate("/profile")}
       >
-        <User className="w-6 h-6 mb-0.5" />
-        <span>Profile</span>
+        <User className="w-6 h-6 mb-1" />
+        <span className="font-medium">Profile</span>
       </button>
     </nav>
   );

@@ -40,22 +40,24 @@ const Login = () => {
   const [storeName, setStoreName] = React.useState("");
   const [hotelName, setHotelName] = React.useState("");
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     try {
       await login(loginPhone, loginPassword); // Await login for context update
       toast.success("Login successful");
       navigate("/"); // Navigate only after context is updated
-    } catch (err: any) {
-      toast.error(err?.message || "Login failed");
+    } catch (err: unknown) {
+      let message = "Login failed";
+      if (err instanceof Error) message = err.message;
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
   };
 
   // (No change to signup handler, just for context)
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     try {
@@ -79,10 +81,21 @@ const Login = () => {
         signupRole === UserRole.HOTEL_MANAGER ? hotelName : undefined
       );
       toast.success("Account created successfully");
-      navigate("/");
-    } catch (error: any) {
+      // Auto-login after successful signup
+      try {
+        await login(signupPhone, signupPassword);
+        navigate("/");
+      } catch (loginError: unknown) {
+        let message = "Auto-login failed. Please log in manually.";
+        if (loginError instanceof Error) message = loginError.message;
+        toast.error(message);
+        navigate("/login");
+      }
+    } catch (error: unknown) {
+      let message = "Failed to create account";
+      if (error instanceof Error) message = error.message;
       console.error("Signup error:", error);
-      toast.error(error.message || "Failed to create account");
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

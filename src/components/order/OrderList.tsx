@@ -11,10 +11,9 @@ import type { Order } from "@/types/order";
 const OrderList: React.FC = () => {
   const { user } = useAuth();
   const [status, setStatus] = React.useState("ALL");
-  const [page, setPage] = React.useState(1);
   const [search, setSearch] = React.useState("");
-  const [pageSize] = React.useState(10);
-  const { data: orders = [], isLoading, isError, refetch } = useOrders({ user, page, pageSize, status });
+  // Remove pagination
+  const { data: orders = [], isLoading, isError, refetch } = useOrders({ user, status, search });
 
   // Robust onAction handler for hotel/store acceptance/rejection
   const handleOrderAction = async (action: "accept" | "reject" | "cancel" | "preparing" | "ready_for_pickup", order: Order) => {
@@ -53,7 +52,7 @@ const OrderList: React.FC = () => {
 
   return (
     <div>
-      <OrderFilterBar status={status} setStatus={setStatus} search={search} setSearch={setSearch} page={page} setPage={setPage} />
+      <OrderFilterBar status={status} setStatus={setStatus} search={search} setSearch={setSearch} />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {orders.map(order => <OrderCard key={order.id} order={order} userRole={user.role} onAction={handleOrderAction} />)}
       </div>

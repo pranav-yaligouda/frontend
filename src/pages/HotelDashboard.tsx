@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -13,7 +12,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
@@ -30,7 +28,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { useAuth, UserRole, User } from "@/context/AuthContext";
+import { useAuth, UserRole } from "@/context/AuthContext";
 import { useHotel } from "@/context/HotelContext";
 import { Plus, UtensilsCrossed, ShoppingBag, BarChart, Eye, MapPin } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
@@ -41,6 +39,7 @@ import { HotelProvider } from "@/context/HotelContext";
 import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { OrderStatus } from "@/types/order";
 // Hotel type inlined below for type safety and to avoid missing module errors
 
 type Hotel = {
@@ -100,7 +99,7 @@ type EditableHotel = Partial<Hotel> & {
 // Only one HotelDashboard definition and export below.
 const HotelDashboardInner: React.FC = () => {
   const { user, isLoading: authLoading } = useAuth();
-  const { hotel, setHotel, refreshHotel, loading: hotelLoading } = useHotel();
+  const { hotel, setHotel, refreshHotel, loading: hotelLoading, error: hotelError } = useHotel();
   const [dishes, setDishes] = React.useState<Dish[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -120,21 +119,25 @@ const HotelDashboardInner: React.FC = () => {
     available: true,
   });
 
-  // Restrict access to hotel managers only
-  if (!authLoading && (!user || user.role !== UserRole.HOTEL_MANAGER)) {
-    return <Navigate to="/" replace />;
-  }
-
   // Fetch hotel profile and dishes for hotel manager
   React.useEffect(() => {
     const fetchDishes = async () => {
-      if (!user || !user.role === UserRole.HOTEL_MANAGER) return;
+      if (!user || user.role !== UserRole.HOTEL_MANAGER) return;
       setLoading(true);
       try {
         const token = localStorage.getItem("athani_token");
         if (!token) return;
         const api = await import("@/api/hotelApi");
-        if (hotel && hotel._id) {
+        // Replace (hotel as any)._id with a type-safe check
+        function hasMongoId(hotel: unknown): hotel is { _id: string } {
+          return (
+            typeof hotel === 'object' &&
+            hotel !== null &&
+            '_id' in hotel &&
+            typeof ((hotel as { _id?: unknown })._id) === 'string'
+          );
+        }
+        if (hasMongoId(hotel)) {
           const dishesData = await api.getMyDishes();
           setDishes(Array.isArray(dishesData.dishes) ? dishesData.dishes : dishesData);
         }
@@ -147,6 +150,11 @@ const HotelDashboardInner: React.FC = () => {
     };
     fetchDishes();
   }, [user, hotel]);
+
+  // Restrict access to hotel managers only (after hooks)
+  if (!authLoading && (!user || user.role !== UserRole.HOTEL_MANAGER)) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleAddDish = async (formData: FormData) => {
   try {
@@ -205,6 +213,20 @@ const HotelDashboardInner: React.FC = () => {
     return false;
   }
 
+  // Robust: Only show modal or dashboard after hotel data is loaded
+  if (authLoading || hotelLoading) {
+    return <div className="container py-8 text-center">Loading...</div>;
+  }
+
+  if (hotelError) {
+    return (
+      <div className="container py-8 text-center text-red-600">
+        <div className="mb-4">Failed to load hotel data.</div>
+        <button className="underline text-blue-600" onClick={refreshHotel}>Retry</button>
+      </div>
+    );
+  }
+
   if (isHotelInfoIncomplete(hotel)) {
     return (
       <HotelInfoModal
@@ -246,19 +268,19 @@ const HotelDashboardInner: React.FC = () => {
   };
 
   const handleTimingChange = (day: string, key: string, value: unknown) => {
-    setHotelEdit(prev => prev ? {
-      ...prev,
-      timings: {
-        ...(prev.timings || {}),
-        [day]: {
-          ...(prev.timings?.[day] || {}),
-          [key]: value,
+    setHotelEdit(prev => {
+      const prevDay = prev?.timings?.[day] || { open: "", close: "", holiday: false };
+      return {
+        ...prev,
+        timings: {
+          ...(prev?.timings || {}),
+          [day]: {
+            open: key === "open" ? String(value) : prevDay.open,
+            close: key === "close" ? String(value) : prevDay.close,
+            holiday: key === "holiday" ? Boolean(value) : prevDay.holiday,
+          },
         },
-      },
-    } : {
-      timings: {
-        [day]: { [key]: value }
-      }
+      };
     });
   };
 
@@ -322,7 +344,7 @@ const HotelDashboardInner: React.FC = () => {
                     variant="outline"
                     className="ml-2"
                     onClick={() => {
-                      if (hotel) setHotelEdit(hotel);
+                      if (hotel) setHotelEdit({ ...hotel, timings: hotel.timings, location: hotel.location, image: hotel.image, holidays: hotel.holidays });
                       setIsEditHotelOpen(true);
                     }}
                   >
@@ -632,7 +654,7 @@ const HotelDashboardInner: React.FC = () => {
                     </TableCell>
                     <TableCell>₹{order.price}</TableCell>
                     <TableCell>
-                      <OrderStatusBadge status={order.status as any} />
+                      <OrderStatusBadge status={order.status as OrderStatus} />
                     </TableCell>
                     <TableCell>
                       {order.deliveryAgent ? (
@@ -710,7 +732,7 @@ const HotelDashboardInner: React.FC = () => {
                   <p><strong>Dish:</strong> {selectedOrder.dishName}</p>
                   <p><strong>Quantity:</strong> {selectedOrder.quantity}</p>
                   <p><strong>Total:</strong> ₹{selectedOrder.price}</p>
-                  <p><strong>Status:</strong> <OrderStatusBadge status={selectedOrder.status as any} /></p>
+                  <p><strong>Status:</strong> <OrderStatusBadge status={selectedOrder.status as OrderStatus} /></p>
                 </div>
               </div>
               {selectedOrder.deliveryAgent && (

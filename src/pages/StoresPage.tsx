@@ -3,9 +3,20 @@ import { getAllStores } from "@/api/storeApi";
 import StoreCard from "@/components/store/StoreCard";
 import { Input } from "@/components/ui/input";
 import { ShoppingBag } from "lucide-react";
+import type { Store as StoreBase } from "@/types/store";
+
+// Extend Store type to allow _id for backend compatibility
+interface Store extends StoreBase {
+  _id?: string;
+}
+
+// Type guard for backend compatibility
+function hasMongoId(store: Store): store is Store & { _id: string } {
+  return typeof (store as { _id?: unknown })._id === 'string';
+}
 
 export default function StoresPage() {
-  const [stores, setStores] = useState([]);
+  const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -23,7 +34,7 @@ export default function StoresPage() {
   // Extract all categories for filter
   const allCategories = useMemo(() => {
     const cats = new Set<string>();
-    stores.forEach((s: any) => {
+    stores.forEach((s: Store) => {
       (s.categories || []).forEach((c: string) => cats.add(c));
     });
     return Array.from(cats).sort();
@@ -31,7 +42,7 @@ export default function StoresPage() {
 
   // Filtered stores
   const filteredStores = useMemo(() => {
-    return stores.filter((store: any) => {
+    return stores.filter((store: Store) => {
       const matchesSearch = store.name.toLowerCase().includes(search.toLowerCase()) || (store.address || "").toLowerCase().includes(search.toLowerCase());
       const matchesCategory = !category || (store.categories || []).includes(category);
       // Open/closed filter
@@ -126,8 +137,8 @@ export default function StoresPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
-            {filteredStores.map((store: any) => (
-              <StoreCard key={store._id || store.id} store={store} />
+            {filteredStores.map((store: Store) => (
+              <StoreCard key={hasMongoId(store) ? store._id : store.id} store={store} />
             ))}
           </div>
         )}

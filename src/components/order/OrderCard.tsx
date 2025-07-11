@@ -24,43 +24,45 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, userRole, onAction }) => {
 
   // Responsive, modern card layout
   return (
-    <div className="rounded-xl border bg-white shadow-md p-4 flex flex-col gap-3 h-full transition hover:shadow-lg focus-within:ring-2 focus-within:ring-primary/50">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-lg truncate">Order #{orderId.toString().substring(0, 8)}</span>
-          <OrderStatusBadge status={order.status} />
+    <div className="rounded-2xl border bg-white shadow-lg p-5 flex flex-col gap-4 h-full transition hover:shadow-xl focus-within:ring-2 focus-within:ring-athani-400/60">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-extrabold text-xl truncate text-athani-900">Order #{orderId.toString().substring(0, 8)}</span>
         </div>
-        <span className="text-xs text-gray-500">{createdAt}</span>
+        <div className="flex items-center gap-2 sm:justify-end">
+          <OrderStatusBadge status={order.status} className="ml-auto px-3 py-1 rounded-full text-xs font-semibold" />
         </div>
+      </div>
+      <span className="text-xs text-gray-400 -mt-2">{createdAt}</span>
       <OrderTimeline status={order.status} timestamps={order.timestamps} />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-2">
         <div className="flex-1 min-w-0">
           <div className="text-sm text-gray-700 mb-1">
-          <span className="font-medium">Items:</span> {order.items.length}
-        </div>
+            <span className="font-medium">Items:</span> {order.items.length}
+          </div>
           <div className="text-sm text-gray-700 mb-1">
             <span className="font-medium">Total:</span> ₹{orderTotal.toFixed(2)}
-      </div>
-        {userRole === UserRole.CUSTOMER && (
+          </div>
+          {userRole === UserRole.CUSTOMER && (
             <div className="text-sm text-gray-700 mb-1">
-            <span className="font-medium">Delivery Address:</span> {order.deliveryAddress?.addressLine ?? ''}
-          </div>
-        )}
-        {(userRole === UserRole.HOTEL_MANAGER || userRole === UserRole.STORE_OWNER) && (
+              <span className="font-medium">Delivery Address:</span> {order.deliveryAddress?.addressLine ?? ''}
+            </div>
+          )}
+          {(userRole === UserRole.HOTEL_MANAGER || userRole === UserRole.STORE_OWNER) && (
             <div className="text-sm text-gray-700 mb-1">
-            <span className="font-medium">Customer:</span> {order.customerId}
-          </div>
-        )}
-          </div>
+              <span className="font-medium">Customer:</span> {order.customerId}
+            </div>
+          )}
+        </div>
         <div className="flex flex-col gap-2 items-end min-w-[120px]">
           <Link
             to={`/order/${orderId}`}
-            className="inline-block px-4 py-2 rounded-lg border border-primary text-primary font-semibold text-sm hover:bg-primary hover:text-white transition text-center w-full"
+            className="inline-block px-4 py-2 rounded-lg border border-athani-500 text-athani-700 font-semibold text-sm hover:bg-athani-500 hover:text-white transition text-center w-full shadow-sm"
             tabIndex={0}
             aria-label={`View details for order ${orderId}`}
           >
             View Details
-        </Link>
+          </Link>
           <OrderActions order={order} userRole={userRole} onAction={onAction} />
         </div>
       </div>

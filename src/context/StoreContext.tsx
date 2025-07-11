@@ -22,6 +22,7 @@ interface StoreContextType {
   setStore: (store: Store | null) => void;
   refreshStore: () => Promise<void>;
   loading: boolean;
+  error: string | null;
 }
 
 const StoreContext = React.createContext<StoreContextType | undefined>(undefined);
@@ -29,20 +30,24 @@ const StoreContext = React.createContext<StoreContextType | undefined>(undefined
 export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
   const [store, setStore] = React.useState<Store | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
   const { user } = useAuth();
   const location = useLocation();
 
   const refreshStore = async () => {
     setLoading(true);
+    setError(null);
     try {
       console.log('[StoreContext] Fetching store...');
       const data = await getMyStore();
       console.log('[StoreContext] Store API response:', data);
       setStore(data?.data || null);
+      setError(null);
     } catch (err) {
       console.error('[StoreContext] Error fetching store:', err);
       setStore(null);
+      setError('Failed to load store data.');
     } finally {
       setLoading(false);
     }
@@ -62,7 +67,7 @@ export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user, location]);
 
   return (
-    <StoreContext.Provider value={{ store, setStore, refreshStore, loading }}>
+    <StoreContext.Provider value={{ store, setStore, refreshStore, loading, error }}>
       {children}
     </StoreContext.Provider>
   );
