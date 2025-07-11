@@ -1,8 +1,10 @@
-import * as React from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Dish } from "@/types/dish";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ProductGrid from "@/components/product/ProductGrid";
+import CategoryCard from "@/components/category/CategoryCard";
 import StoreCard from "@/components/store/StoreCard";
 import PerfectionSection from "@/components/home/PerfectionSection";
 import { ChevronRight, Star, MapPin } from "lucide-react";
@@ -10,16 +12,12 @@ import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 
 import WhatsOnYourMindSection from "@/components/home/WhatsOnYourMindSection";
-import { useHotels } from '@/hooks/useHotels';
-import { useStores } from '@/hooks/useStores';
-import { useProducts } from '@/hooks/useProducts';
-import { useDishes } from '@/hooks/useDishes';
+import HomeCategoryTabs from "@/components/home/HomeCategoryTabs";
+import { getAllStores } from '@/api/storeApi';
+import { getProducts } from '@/api/product';
 import ProductCard from "@/components/product/ProductCard";
 import type { Product } from "@/types/product";
 import type { Store } from "@/types/store";
-import { Skeleton } from "@/components/ui/skeleton";
-import { getAllStoreProducts } from '@/api/product';
-import ProductGrid from "@/components/product/ProductGrid";
 
 
 const PRODUCT_CATEGORIES = [
@@ -38,45 +36,95 @@ const Index = () => {
     dishes?: Dish[];
     deliveryTime?: string;
   };
+  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [normalizedDishes, setNormalizedDishes] = useState<Dish[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { addItem } = useCart();
 
-  // Hotels
-  const { data: hotels = [], isLoading: hotelsLoading, isError: hotelsError } = useHotels();
-  // Dishes (flattened from hotels)
-  const { data: dishes = [], isLoading: dishesLoading, isError: dishesError } = useDishes({});
-  // Stores
-  const { data: groceryStores = [], isLoading: storesLoading, isError: storesError } = useStores();
-  // Products (with filters)
-  const [selectedGroceryCategory, setSelectedGroceryCategory] = React.useState('');
-  const [selectedGroceryStore, setSelectedGroceryStore] = React.useState<string | null>(null);
-  const [grocerySearch, setGrocerySearch] = React.useState('');
-  const [storeInventory, setStoreInventory] = React.useState<Product[]>([]);
-  const [productsLoading, setProductsLoading] = React.useState(true);
+  const [groceryStores, setGroceryStores] = useState<Store[]>([]);
+  const [groceryProducts, setGroceryProducts] = useState<Product[]>([]);
+  const [groceryLoading, setGroceryLoading] = useState(false);
+  const [selectedGroceryCategory, setSelectedGroceryCategory] = useState('');
+  const [selectedGroceryStore, setSelectedGroceryStore] = useState<string | null>(null);
+  const [grocerySearch, setGrocerySearch] = useState('');
 
-  React.useEffect(() => {
-    setProductsLoading(true);
-    getAllStoreProducts()
-      .then(res => {
-        if (res.data && res.data.data && Array.isArray(res.data.data.items)) {
-          setStoreInventory(
-            res.data.data.items.map(product => ({
-              ...product,
-              id: product._id?.toString() || product.id,
-              storeId: product.storeId?.toString() || product.storeId,
-            }))
-          );
+  useEffect(() => {
+    const fetchAll = async () => {
+      setIsLoading(true);
+      try {
+        const { getAllHotels } = await import('@/api/hotelApi');
+        const hotelsResponse = await getAllHotels();
+        let hotelsData: Hotel[] = [];
+        if (hotelsResponse && hotelsResponse.success) {
+          // Support paginated response shape
+          if (hotelsResponse.data && Array.isArray(hotelsResponse.data.items)) {
+            hotelsData = hotelsResponse.data.items;
+          } else if (Array.isArray(hotelsResponse.data)) {
+            hotelsData = hotelsResponse.data;
+          } else {
+            hotelsData = [];
+          }
         } else {
-          setStoreInventory([]);
-          if (res.data && 'error' in res.data && typeof res.data.error === 'string') {
-            console.error('Store products error:', res.data.error);
+          toast.error(hotelsResponse?.error || 'Failed to fetch hotels');
+          hotelsData = [];
+        }
+        // Normalize hotel data and image URLs
+        const staticBase = import.meta.env.VITE_STATIC_URL || 'http://localhost:4000';
+        const normalizedHotels = hotelsData.map((hotel: Hotel) => {
+          let imageUrl = hotel.image;
+          if (imageUrl) {
+            if (/^data:image\//.test(imageUrl)) {
+              // Use base64 as-is
+            } else if (!/^https?:\/\//.test(imageUrl)) {
+              imageUrl = `${staticBase}/uploads/${imageUrl}`;
+            }
+          } else {
+            imageUrl = '/images/hotels/default.jpg';
+          }
+          return {
+            ...hotel,
+            id: hotel._id || hotel.id,
+            image: imageUrl,
+          };
+        });
+        setHotels(normalizedHotels);
+        // Flatten all hotel dishes into a single array, attaching hotel info
+        const normalized: Dish[] = [];
+        for (const hotel of hotelsData) {
+          for (const hotelDish of hotel.dishes || []) {
+            let imageUrl = hotelDish.image;
+            if (imageUrl && !/^https?:\/\//.test(imageUrl)) {
+              imageUrl = `${staticBase}/uploads/${imageUrl}`;
+            }
+            if (!imageUrl) {
+              imageUrl = "/images/dishes/default.jpg";
+            }
+            // Robust normalization: always set id from _id and hotelId from hotel._id or fallback to dish.hotel
+            const dishId = hotelDish._id || hotelDish.id;
+            const hotelId = hotel._id || hotel.id || hotelDish.hotel;
+            if (!dishId || !hotelId) {
+              if (typeof window !== 'undefined' && window.console) {
+                window.console.warn('Skipping dish with missing _id or hotelId:', { hotelDish, hotel });
+              }
+              continue;
+            }
+            normalized.push({
+              ...hotelDish,
+              hotelName: hotel.name,
+              hotelId: hotelId,
+              id: dishId,
+              image: imageUrl,
+            });
           }
         }
-      })
-      .catch(err => {
-        setStoreInventory([]);
-        console.error('Store products fetch failed:', err);
-      })
-      .finally(() => setProductsLoading(false));
+        setNormalizedDishes(normalized);
+      } catch (error) {
+        console.error("Failed to fetch hotels/dishes:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAll();
   }, []);
 
   const handleAddDishToCart = (dish: Dish) => {
@@ -104,9 +152,9 @@ const Index = () => {
     toast.success(`${dish.name} added to cart!`);
   };
 
-  const [selectedCategory, setSelectedCategory] = React.useState<string>("food_delivery");
+  const [selectedCategory, setSelectedCategory] = useState<string>("food_delivery");
   const sectionRefs = {
-    food_delivery: React.useRef<HTMLDivElement>(null),
+    food_delivery: useRef<HTMLDivElement>(null),
     // Add more refs for other categories if needed
   };
 
@@ -117,30 +165,43 @@ const Index = () => {
     }, 100);
   };
 
-  // Add handler for adding product to cart
-  const handleAddProductToCart = React.useCallback((product: Product) => {
-    if (!product.id || !product.storeId) {
-      toast.error('Cannot add to cart: Invalid product or store ID.');
-      return;
-    }
-    addItem({
-      id: `${product.storeId}_${product.id}`,
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      storeId: product.storeId,
-      storeName: product.storeName,
-      type: 'product',
-    });
-    toast.success(`${product.name} added to cart!`);
-  }, [addItem]);
-
-  // Optional: handler for quick view
-  const handleQuickView = React.useCallback((product: Product) => {
-    // Implement modal or drawer logic here, e.g. setQuickViewProduct(product); setShowQuickView(true);
-    toast.info(`Quick view for ${product.name}`);
+  // Fetch grocery stores on mount
+  useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        setGroceryLoading(true);
+        const res = await getAllStores();
+        setGroceryStores(res.data.items || []);
+      } catch (err) {
+        toast.error('Failed to fetch stores');
+      } finally {
+        setGroceryLoading(false);
+      }
+    };
+    fetchStores();
   }, []);
+
+  // Fetch grocery products when filters change
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setGroceryLoading(true);
+        const params: Record<string, string | number> = {};
+        if (selectedGroceryStore) params.storeId = selectedGroceryStore;
+        if (selectedGroceryCategory) params.category = selectedGroceryCategory;
+        if (grocerySearch) params.search = grocerySearch;
+        params.page = 1;
+        params.limit = 20;
+        const res = await getProducts(params);
+        setGroceryProducts(res.data.data.items || []);
+      } catch (err) {
+        toast.error('Failed to fetch products');
+      } finally {
+        setGroceryLoading(false);
+      }
+    };
+    fetchProducts();
+  }, [selectedGroceryStore, selectedGroceryCategory, grocerySearch]);
 
   return (
     <div className="pb-16 bg-gradient-to-b from-primary-100 via-primary-50 to-white min-h-screen">
@@ -153,9 +214,7 @@ const Index = () => {
               <div className="flex justify-center w-full mt-2 mb-4">
                 <div className="w-full max-w-lg px-2">
                   <TabsList
-                    className="flex w-full rounded-full bg-white shadow-lg border border-athani-100 p-1 gap-1 items-center justify-between
-                      sticky top-[3.5rem] z-40 transition-all backdrop-blur-md
-                      md:static md:backdrop-blur-0 md:shadow-none md:border-0"
+                    className="flex w-full rounded-full bg-white shadow-md border border-athani-100 p-1 gap-1 items-center justify-between"
                     style={{ minHeight: '3.25rem' }}
                   >
                     <TabsTrigger
@@ -194,8 +253,8 @@ const Index = () => {
                 <WhatsOnYourMindSection
                   onCategorySelect={handleCategorySelect}
                   selectedCategory={selectedCategory}
-                  dishes={dishes}
-                  isLoading={dishesLoading}
+                  dishes={normalizedDishes}
+                  isLoading={isLoading}
                   onAddToCart={handleAddDishToCart}
                 />
                 {/* --- Enhanced Popular Restaurants Section (now more visually appealing & responsive) --- */}
@@ -214,16 +273,8 @@ const Index = () => {
                     </Link>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {dishesLoading ? (
-                      Array.from({ length: 8 }).map((_, i) => (
-                        <div key={i} className="flex flex-col bg-white rounded-xl shadow-lg border border-gray-100 p-4 animate-pulse">
-                          <Skeleton className="w-full h-40 sm:h-48 md:h-52 mb-3" />
-                          <Skeleton className="w-2/3 h-6 mb-2" />
-                          <Skeleton className="w-1/2 h-4 mb-2" />
-                          <Skeleton className="w-1/3 h-4 mb-2" />
-                          <Skeleton className="w-full h-10" />
-                        </div>
-                      ))
+                    {isLoading ? (
+                      <div className="col-span-full text-center py-12 text-gray-400 text-lg">Loading restaurants...</div>
                     ) : hotels.length === 0 ? (
                       <div className="col-span-full text-center py-12 text-gray-400 text-lg">No restaurants found.</div>
                     ) : (
@@ -369,13 +420,18 @@ const Index = () => {
                     <option key={store._id} value={store._id}>{store.name}</option>
                   ))}
                 </select>
-                {/* Filter for available products */}
-                <ProductGrid
-                  products={storeInventory}
-                  storeInventory={storeInventory}
-                  isLoading={productsLoading}
-                        addToCart={handleAddProductToCart}
-                      />
+                {/* Product Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {groceryLoading ? (
+                    Array.from({ length: 8 }).map((_, i) => <div key={i} className="bg-gray-100 rounded-xl h-48 animate-pulse" />)
+                  ) : groceryProducts.length === 0 ? (
+                    <div className="col-span-full text-center text-gray-400 py-8">No products found.</div>
+                  ) : (
+                    groceryProducts.map(product => (
+                      <ProductCard key={product._id} product={product} />
+                    ))
+                  )}
+                </div>
                 {/* Store Grid */}
                 <div className="mt-8">
                   <h3 className="text-lg font-semibold mb-2">Popular Stores</h3>

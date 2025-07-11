@@ -1,4 +1,5 @@
-import * as React from "react";
+
+import React, { useRef, useEffect } from "react";
 import { Order } from "@/data/models";
 import { Button } from "@/components/ui/button";
 import OrderStatusBadge from "../order/OrderStatusBadge";
@@ -11,9 +12,9 @@ interface OrderNotificationsProps {
 }
 
 const OrderNotifications = ({ orders, onView, onClose }: OrderNotificationsProps) => {
-  const notificationRef = React.useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
   
-  React.useEffect(() => {
+  useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
         onClose();

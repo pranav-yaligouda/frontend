@@ -9,7 +9,7 @@ interface StoreCardProps {
 const StoreCard = ({ store }: StoreCardProps) => {
   // Helper to normalize timings/openingHours to an array
   const getOpeningHoursArray = () => {
-    if (Array.isArray(store.timings)) return store.timings;
+    if (Array.isArray(store.openingHours)) return store.openingHours;
     if (store.timings && typeof store.timings === "object") {
       return Object.entries(store.timings).map(([day, value]) => ({
         day,
@@ -48,7 +48,7 @@ const StoreCard = ({ store }: StoreCardProps) => {
   };
 
   return (
-    <Link to={`/store/${store._id || store._id}`}>
+    <Link to={`/store/${store._id || store.id}`}>
       <div className="overflow-hidden transition-all bg-white border rounded-lg hover:shadow-md hover:border-primary">
         <div className="relative h-40 overflow-hidden bg-gray-100">
           <img

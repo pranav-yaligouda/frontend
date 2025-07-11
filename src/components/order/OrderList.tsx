@@ -17,7 +17,7 @@ const OrderList: React.FC = () => {
   const { data: orders = [], isLoading, isError, refetch } = useOrders({ user, page, pageSize, status });
 
   // Robust onAction handler for hotel/store acceptance/rejection
-  const handleOrderAction = async (action: "accept" | "reject" | "cancel" | "preparing", order: Order) => {
+  const handleOrderAction = async (action: "accept" | "reject" | "cancel" | "preparing" | "ready_for_pickup", order: Order) => {
     const orderId = (order._id || order.id);
     if (!orderId) {
       toast.error("Order ID missing, cannot update status.");
@@ -30,6 +30,9 @@ const OrderList: React.FC = () => {
       } else if (action === "preparing") {
         await OrderProcessingService.updateOrderStatus(orderId, "PREPARING");
         toast.success("Order marked as preparing");
+      } else if (action === "ready_for_pickup") {
+        await OrderProcessingService.updateOrderStatus(orderId, "READY_FOR_PICKUP");
+        toast.success("Order marked as ready for pickup");
       } else if (action === "reject") {
         await OrderProcessingService.updateOrderStatus(orderId, "REJECTED");
         toast.success("Order rejected");

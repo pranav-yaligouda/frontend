@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import RouteMap from "../delivery/RouteMap";
 import OrderProcessingService from "@/api/order";
 import { useOrder } from '@/hooks/useOrder';
+import { useAuth, UserRole } from "@/context/AuthContext";
 
 interface OrderDetailsProps {
   orderId: string;
@@ -27,6 +28,7 @@ interface OrderDetailsProps {
 
 const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
   const { data: order, isLoading, isError } = useOrder(orderId);
+  const { user } = useAuth();
 
   if (isLoading) {
     return (
@@ -74,6 +76,7 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
     READY_FOR_PICKUP: "bg-purple-100 text-purple-800",
     ACCEPTED_BY_AGENT: "bg-orange-100 text-orange-800",
     PICKED_UP: "bg-orange-200 text-orange-900",
+    OUT_FOR_DELIVERY: "bg-blue-200 text-blue-900",
     DELIVERED: "bg-green-100 text-green-800",
     CANCELLED: "bg-red-100 text-red-800",
     REJECTED: "bg-red-200 text-red-900",
@@ -86,6 +89,7 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
     READY_FOR_PICKUP: "Ready for Pickup",
     ACCEPTED_BY_AGENT: "Accepted by Agent",
     PICKED_UP: "Picked Up",
+    OUT_FOR_DELIVERY: "Out for Delivery",
     DELIVERED: "Delivered",
     CANCELLED: "Cancelled",
     REJECTED: "Rejected",
@@ -95,9 +99,9 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
     <div className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Order #{order.id.substring(0, 8)}</h1>
+          <h1 className="text-2xl font-bold">Order #{String(order.id || order._id || 'N/A').substring(0, 8)}</h1>
           <p className="text-gray-500">
-            Placed on {format(new Date(order.createdAt), "MMMM d, yyyy 'at' h:mm a")}
+            Placed on {order.createdAt ? format(new Date(order.createdAt), "MMMM d, yyyy 'at' h:mm a") : 'Unknown date'}
           </p>
         </div>
         <Badge className={`${statusColors[order.status]} py-1 px-3`}>
@@ -113,14 +117,14 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
             </CardHeader>
             <CardContent className="space-y-6">
               {Object.entries(itemsByStore).map(([storeId, { storeName, items }], index) => (
-                <div key={storeId}>
+                <div key={storeId || `store-${index}`}>
                   {index > 0 && <Separator className="my-4" />}
                   <div className="mb-3 flex items-center gap-2">
                     <Package className="h-4 w-4 text-primary" />
                     <h3 className="font-medium">{storeName}</h3>
                     
-                    {/* Display PIN for this store if available */}
-                    {order.storePins && order.storePins[storeId] && (
+                    {/* Display store-specific PIN only if no verificationPin exists (legacy support) */}
+                    {!order.verificationPin && order.storePins && order.storePins[storeId] && (
                       <div className="ml-auto">
                         <Badge className="bg-blue-100 text-blue-800 flex items-center gap-1">
                           <Shield className="h-3 w-3" />
@@ -131,17 +135,17 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
                   </div>
                   <ul className="space-y-3">
                     {items.map((item) => (
-                      <li key={item.productId} className="flex justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{item.quantity} x</span>
-                            <span>{item.name}</span>
-                          </div>
-                        </div>
-                        <span className="font-medium">
-                          ₹{(item.price * item.quantity).toFixed(2)}
-                        </span>
-                      </li>
+                      <li key={item.productId || `${item.name}-${index}`} className="flex justify-between">
+  <div className="flex-1">
+    <div className="flex items-center gap-2">
+      <span className="font-medium">{Number.isFinite(item.quantity) ? item.quantity : 0} x</span>
+      <span>{item.name || 'Unnamed Item'}</span>
+    </div>
+  </div>
+  <span className="font-medium">
+    ₹{(Number.isFinite(item.price) && Number.isFinite(item.quantity) ? (item.price * item.quantity) : 0).toFixed(2)}
+  </span>
+</li>
                     ))}
                   </ul>
                 </div>
@@ -156,7 +160,7 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
               
               <div className="flex items-center justify-between pt-2 text-lg">
                 <span className="font-bold">Total Amount</span>
-                <span className="font-bold">₹{order.total.toFixed(2)}</span>
+                <span className="font-bold">₹{Number.isFinite(order.total) ? order.total.toFixed(2) : '0.00'}</span>
               </div>
             </CardContent>
           </Card>
@@ -185,7 +189,23 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
                   <p className="mt-1 italic">{order.deliveryInstructions}</p>
                 </div>
               )}
-              
+
+              {/* Show verification PIN for hotel/store vendor when order is in pickup flow */}
+              {order.verificationPin &&
+                ["READY_FOR_PICKUP", "ACCEPTED_BY_AGENT", "PICKED_UP", "OUT_FOR_DELIVERY"].includes(order.status) &&
+                (user?.role === UserRole.HOTEL_MANAGER || user?.role === UserRole.STORE_OWNER) && (
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-500 font-semibold">Pickup Verification PIN</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Shield className="h-4 w-4 text-blue-600" />
+                      <span className="font-mono font-bold text-lg">{order.verificationPin}</span>
+                    </div>
+                    <p className="text-xs text-blue-700 mt-1">
+                      Provide this PIN to the delivery agent for pickup confirmation.
+                    </p>
+                  </div>
+              )}
+
               {order.verificationPin && (
                 <div>
                   <p className="text-sm text-gray-500">Verification PIN</p>
@@ -195,6 +215,24 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
                     This PIN must be verified by the delivery agent upon pickup
+                  </p>
+                </div>
+              )}
+              
+              {/* Show store-specific PINs only if no verificationPin exists (legacy support) */}
+              {!order.verificationPin && order.storePins && Object.keys(order.storePins).length > 0 && (
+                <div>
+                  <p className="text-sm text-gray-500">Store PINs</p>
+                  <div className="space-y-2 mt-1">
+                    {Object.entries(order.storePins).map(([storeId, pin]) => (
+                      <div key={storeId} className="flex items-center gap-2">
+                        <Shield className="h-3 w-3 text-blue-600" />
+                        <span className="text-sm font-medium">{pin}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Legacy store-specific PINs
                   </p>
                 </div>
               )}
@@ -248,7 +286,7 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
                     </p>
                   </li>
                 )}
-                {["PREPARING", "READY_FOR_PICKUP", "ACCEPTED_BY_AGENT", "PICKED_UP", "DELIVERED"].includes(order.status) && (
+                {["PREPARING", "READY_FOR_PICKUP", "ACCEPTED_BY_AGENT", "PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"].includes(order.status) && (
                   <li className="mb-6 ms-6">
                     <span className="absolute flex items-center justify-center w-6 h-6 bg-indigo-600 rounded-full -start-3 ring-8 ring-white">
                       <Package className="w-3 h-3 text-white" />
@@ -256,7 +294,7 @@ const OrderDetails = ({ orderId, showMap = false }: OrderDetailsProps) => {
                     <h3 className="font-medium">Preparing Order</h3>
                   </li>
                 )}
-                {["ACCEPTED_BY_AGENT", "PICKED_UP", "DELIVERED"].includes(order.status) && (
+                {["ACCEPTED_BY_AGENT", "PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"].includes(order.status) && (
                   <li className="mb-6 ms-6">
                     <span className="absolute flex items-center justify-center w-6 h-6 bg-orange-600 rounded-full -start-3 ring-8 ring-white">
                       <Truck className="w-3 h-3 text-white" />

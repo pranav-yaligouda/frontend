@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import LocationInputWithMap from "@/components/ui/LocationInputWithMap";
 // import LocationInput from "@/components/ui/locationInput"; // replaced with Google Maps version
 import { toast } from "sonner";
+import { createOrder, Product } from "@/data/models";
 import { OrderProcessingService } from "@/api/order";
 
 const Cart = () => {
@@ -16,14 +17,14 @@ const Cart = () => {
   const navigate = useNavigate();
 
   // Address object state
-  const [address, setAddress] = React.useState({
+  const [address, setAddress] = useState({
     addressLine: '',
     coordinates: null as { lat: number; lng: number } | null,
   });
-  const [instructions, setInstructions] = React.useState("");
-  const [isProcessing, setIsProcessing] = React.useState(false);
-  const [customerLocation, setCustomerLocation] = React.useState<{ lat: number; lng: number } | null>(null);
-  const [paymentMethod, setPaymentMethod] = React.useState<'cod' | 'online'>('cod');
+  const [instructions, setInstructions] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [customerLocation, setCustomerLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('cod');
 
 
   // Filter out invalid cart items (missing id or storeId)
@@ -43,7 +44,11 @@ const Cart = () => {
     const newQuantity = currentQuantity + change;
     const cartItem = items.find(item => item.id === id);
     if (!cartItem) return;
-    // Only check stock for products in the future (not dishes). For now, skip stock check.
+    const product = products.find(p => p.id === cartItem.productId);
+    if (product && newQuantity > product.stockQuantity) {
+      toast.error(`Sorry, only ${product.stockQuantity} available in stock`);
+      return;
+    }
     if (newQuantity <= 0) {
       removeItem(id);
     } else {
@@ -277,8 +282,6 @@ const Cart = () => {
                             size="icon"
                             className="w-8 h-8"
                             onClick={() => handleUpdateQuantity(item.id, item.quantity, -1)}
-                            aria-label={`Decrease quantity of ${item.name}`}
-                            disabled={item.quantity <= 1}
                           >
                             <Minus className="w-3 h-3" />
                           </Button>
@@ -288,7 +291,6 @@ const Cart = () => {
                             size="icon"
                             className="w-8 h-8"
                             onClick={() => handleUpdateQuantity(item.id, item.quantity, 1)}
-                            aria-label={`Increase quantity of ${item.name}`}
                           >
                             <Plus className="w-3 h-3" />
                           </Button>
@@ -300,7 +302,6 @@ const Cart = () => {
                             size="icon"
                             className="text-gray-400 hover:text-red-500"
                             onClick={() => removeItem(item.id)}
-                            aria-label={`Remove ${item.name} from cart`}
                           >
                             <Trash className="w-4 h-4" />
                           </Button>

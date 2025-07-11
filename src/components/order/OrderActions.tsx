@@ -8,20 +8,23 @@ import { toast } from "sonner";
 interface OrderActionsProps {
   order: Order;
   userRole: UserRole;
-  onAction?: (action: "accept" | "reject" | "cancel" | "preparing", order: Order) => Promise<void>;
+  onAction?: (action: "accept" | "reject" | "cancel" | "preparing" | "ready_for_pickup", order: Order) => Promise<void>;
 }
 
 const OrderActions: React.FC<OrderActionsProps> = ({ order, userRole, onAction }) => {
-  const [loading, setLoading] = React.useState<"accept" | "reject" | "cancel" | "preparing" | null>(null);
+  const [loading, setLoading] = React.useState<"accept" | "reject" | "cancel" | "preparing" | "ready_for_pickup" | null>(null);
   const [confirm, setConfirm] = React.useState<null | "cancel" | "reject" | "accept">(null);
 
   // Helper to handle actions with confirmation and error handling
-  const handleAction = async (action: "accept" | "reject" | "cancel" | "preparing") => {
+  const handleAction = async (action: "accept" | "reject" | "cancel" | "preparing" | "ready_for_pickup") => {
     setLoading(action);
     try {
       if (action === "preparing") {
         await onAction?.("preparing", order);
         toast.success("Order marked as preparing");
+      } else if (action === "ready_for_pickup") {
+        await onAction?.("ready_for_pickup", order);
+        toast.success("Order marked as ready for pickup");
       } else {
         await onAction?.(action, order);
         toast.success(
@@ -121,6 +124,14 @@ const OrderActions: React.FC<OrderActionsProps> = ({ order, userRole, onAction }
     return (
       <Button size="sm" onClick={() => handleAction("preparing")} disabled={loading === "preparing"}>
         Start Packing
+      </Button>
+    );
+  }
+  // Show 'Ready for Pickup' for hotel/store owner after preparing
+  if ((userRole === "hotel_manager" || userRole === "store_owner") && order.status === "PREPARING") {
+    return (
+      <Button size="sm" onClick={() => handleAction("ready_for_pickup")} disabled={loading === "ready_for_pickup"}>
+        Ready for Pickup
       </Button>
     );
   }

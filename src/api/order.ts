@@ -87,16 +87,14 @@ export class OrderProcessingService {
   }
   
   /**
-   * Verify order pickup at store
+   * Verify order pickup with PIN
    * @param orderId Order ID to verify
-   * @param storeId Store ID where pickup is happening
    * @param pin PIN provided by delivery agent
-   * @param location Current location of delivery agent
-   * @returns Boolean indicating verification success
+   * @returns Order object after successful verification
    */
-  static async verifyOrderPickup(orderId: string, storeId: string, pin: string, location: { lat: number; lng: number }): Promise<boolean> {
+  static async verifyOrderPickup(orderId: string, pin: string): Promise<Order> {
     try {
-      const response = await API.post(`/orders/${orderId}/pickup`, { storeId, pin, location });
+      const response = await API.post(`/orders/${orderId}/pickup`, { pin });
       if (response.data && response.data.success) {
         return response.data.data;
       } else {
@@ -178,6 +176,44 @@ else if (typeof params.pageSize === 'number') query.append('pageSize', String(pa
         console.error('Error fetching available orders:', error.message);
       } else {
         console.error('Unknown error fetching available orders:', error);
+      }
+      throw error;
+    }
+  }
+
+  static async fetchOrdersForAgent(params: {
+    page?: number;
+    pageSize?: number;
+    status?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  } = {}) {
+    try {
+      const query = new URLSearchParams();
+      if (typeof params.page === 'string') query.append('page', params.page);
+      else if (typeof params.page === 'number') query.append('page', String(params.page));
+      if (typeof params.pageSize === 'string') query.append('pageSize', params.pageSize);
+      else if (typeof params.pageSize === 'number') query.append('pageSize', String(params.pageSize));
+      if (params.status) query.append('status', params.status);
+      if (params.dateFrom) query.append('dateFrom', params.dateFrom);
+      if (params.dateTo) query.append('dateTo', params.dateTo);
+      const response = await API.get(`/orders/agent/orders?${query.toString()}`);
+      if (response.data && response.data.success) {
+        // Defensive: always return { items: [...] }
+        if (Array.isArray(response.data.data?.items)) {
+          return response.data;
+        } else if (Array.isArray(response.data.data)) {
+          return { ...response.data, data: { items: response.data.data } };
+        }
+        return { ...response.data, data: { items: [] } };
+      } else {
+        throw new Error(response.data.error || 'Failed to fetch agent orders');
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Error fetching agent orders:', error.message);
+      } else {
+        console.error('Unknown error fetching agent orders:', error);
       }
       throw error;
     }
