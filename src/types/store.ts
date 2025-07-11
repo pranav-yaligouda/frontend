@@ -1,5 +1,5 @@
 export interface Store {
-  _id?: string;
+  id?: string;
   name: string;
   owner: string; // user ID as string
   image?: string;

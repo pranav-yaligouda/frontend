@@ -30,7 +30,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth, UserRole, User } from "@/context/AuthContext";
 import { useHotel } from "@/context/HotelContext";
 import { Plus, UtensilsCrossed, ShoppingBag, BarChart, Eye, MapPin } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
@@ -38,10 +38,9 @@ import OrderStatusBadge from "@/components/order/OrderStatusBadge";
 import { DishModal } from '@/components/hotel/DishModal';
 import { HotelInfoModal } from '@/components/hotel/HotelInfoModal';
 import { HotelProvider } from "@/context/HotelContext";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { UserRole, User } from "@/context/AuthContext";
 // Hotel type inlined below for type safety and to avoid missing module errors
 
 type Hotel = {
@@ -100,7 +99,7 @@ type EditableHotel = Partial<Hotel> & {
 
 // Only one HotelDashboard definition and export below.
 const HotelDashboardInner: React.FC = () => {
-  const { user, hasRole } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { hotel, setHotel, refreshHotel, loading: hotelLoading } = useHotel();
   const [dishes, setDishes] = React.useState<Dish[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -108,9 +107,7 @@ const HotelDashboardInner: React.FC = () => {
   const [orders, setOrders] = React.useState<HotelOrder[]>([]);
   const [isAddDishOpen, setIsAddDishOpen] = React.useState(false);
   const [selectedOrder, setSelectedOrder] = React.useState<HotelOrder | null>(null);
-
   // Hotel profile state
-  // Remove local hotel state, use context
   const [isHotelModalOpen, setIsHotelModalOpen] = React.useState(false);
   const [isEditHotelOpen, setIsEditHotelOpen] = React.useState(false);
   const [hotelEdit, setHotelEdit] = React.useState<EditableHotel | null>(null);
@@ -123,10 +120,15 @@ const HotelDashboardInner: React.FC = () => {
     available: true,
   });
 
+  // Restrict access to hotel managers only
+  if (!authLoading && (!user || user.role !== UserRole.HOTEL_MANAGER)) {
+    return <Navigate to="/" replace />;
+  }
+
   // Fetch hotel profile and dishes for hotel manager
   React.useEffect(() => {
     const fetchDishes = async () => {
-      if (!user || !hasRole([UserRole.HOTEL_MANAGER])) return;
+      if (!user || !user.role === UserRole.HOTEL_MANAGER) return;
       setLoading(true);
       try {
         const token = localStorage.getItem("athani_token");
@@ -144,7 +146,7 @@ const HotelDashboardInner: React.FC = () => {
       }
     };
     fetchDishes();
-  }, [user, hasRole, hotel]);
+  }, [user, hotel]);
 
   const handleAddDish = async (formData: FormData) => {
   try {
@@ -175,15 +177,6 @@ const HotelDashboardInner: React.FC = () => {
     ));
     toast({ title: 'Dish availability updated' });
   };
-
-  // Redirect if not a hotel manager
-  if (!user || !hasRole([UserRole.HOTEL_MANAGER])) {
-    return <div className="flex flex-col items-center justify-center h-[60vh]">
-      <h2 className="text-2xl font-bold mb-4">Access Denied</h2>
-      <p>You do not have permission to access this page.</p>
-    </div>;
-  }
-  if (loading || hotelLoading) return <div className="flex items-center justify-center h-[60vh]">Loading...</div>;
 
   // Improved check: Only show modal if required fields are missing or incomplete
   function isHotelInfoIncomplete(hotel: unknown): boolean {

@@ -9,12 +9,15 @@ import ProductList from '../components/store/ProductList';
 import ProductModal from '../components/store/ProductModal';
 import { Product } from '@/types/product';
 import { PRODUCT_CATEGORIES } from '@/constants/productCategorization';
+import { useAuth, UserRole } from '@/context/AuthContext';
+import { Navigate } from 'react-router-dom';
 
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const defaultTimings = WEEKDAYS.map(day => ({ day, open: '09:00', close: '21:00', closed: false }));
 
 const StoreDashboard: React.FC = () => {
+  const { user, isLoading: authLoading } = useAuth();
   const { store, setStore, refreshStore, loading } = useStore();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
@@ -24,6 +27,11 @@ const StoreDashboard: React.FC = () => {
   const [productModalOpen, setProductModalOpen] = React.useState(false);
   const [editingProduct, setEditingProduct] = React.useState<Product | undefined>(undefined);
   const [productListKey, setProductListKey] = React.useState(0); // for refresh
+
+  // Restrict access to store owners only
+  if (!authLoading && (!user || user.role !== UserRole.STORE_OWNER)) {
+    return <Navigate to="/" replace />;
+  }
 
   React.useEffect(() => {
     // If store is missing required onboarding fields, open modal
