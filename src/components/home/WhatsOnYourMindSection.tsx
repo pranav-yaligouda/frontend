@@ -165,38 +165,38 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
                       style={{ flex: '0 0 auto' }}
                     >
                       {column.map((dish: Dish, idx: number) => (
-                        <div
-                          key={dish.id || `${dish.name}-${dish.hotelName}-${idx}`}
+              <div
+                key={dish.id || `${dish.name}-${dish.hotelName}-${idx}`}
                           className="bg-white rounded-2xl shadow-lg border border-athani-100 hover:shadow-2xl transition-all duration-200 overflow-hidden flex flex-col p-0 group relative w-full aspect-square min-w-[48vw] h-[48vw] sm:min-w-[260px] sm:h-[260px] lg:min-w-[320px] lg:h-[320px]"
                           style={{ flex: '0 0 auto' }}
-                        >
-                          {/* Dish Image */}
+              >
+                {/* Dish Image */}
                           <div className="relative w-full" style={{ height: '70%', minHeight: '70%' }}>
-                            <img
-                              src={(() => {
-                                const staticBase = import.meta.env.VITE_STATIC_URL;
-                                if (!staticBase) {
-                                  throw new Error('VITE_STATIC_URL environment variable is not set. Please configure it in your .env file.');
-                                }
-                                return dish.image && !/^https?:\/\/.*/.test(dish.image)
-                                  ? `${staticBase}/uploads/${dish.image}`
-                                  : dish.image || DEFAULT_DISH_IMAGE;
-                              })()}
-                              alt={dish.name}
-                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                              loading="lazy"
+                  <img
+                    src={(() => {
+                       const staticBase = import.meta.env.VITE_STATIC_URL;
+                       if (!staticBase) {
+                         throw new Error('VITE_STATIC_URL environment variable is not set. Please configure it in your .env file.');
+                       }
+                       return dish.image && !/^https?:\/\/.*/.test(dish.image)
+                         ? `${staticBase}/uploads/${dish.image}`
+                         : dish.image || DEFAULT_DISH_IMAGE;
+                    })()}
+                    alt={dish.name}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
                               style={{ objectFit: 'cover' }}
-                            />
+                  />
                             {/* Hotel Name Overlay */}
                             <div className="absolute left-2 bottom-2 bg-black/60 px-3 py-1 rounded-lg text-white text-sm font-bold shadow-md max-w-[80%] truncate">
                               {hotelNameMap[dish.hotelId] || dish.hotelName || "Unknown Hotel"}
                             </div>
-                            {/* Price badge */}
-                            <div className="absolute top-3 right-3 bg-white/90 px-3 py-1 rounded-full text-athani-900 font-bold shadow text-sm">
-                              ₹{dish.price}
-                            </div>
-                          </div>
-                          {/* Dish Details */}
+                  {/* Price badge */}
+                  <div className="absolute top-3 right-3 bg-white/90 px-3 py-1 rounded-full text-athani-900 font-bold shadow text-sm">
+                    ₹{dish.price}
+                  </div>
+                </div>
+                {/* Dish Details */}
                           <div className="flex-1 flex flex-col p-2 gap-0 justify-between relative">
                             {/* Dish Name and Add to Cart Button Inline */}
                             <div className="text-base font-bold text-gray-900 truncate mb-0.5">{dish.name}</div>
@@ -223,22 +223,22 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
                                   >
                                     <Plus size={16} />
                                   </button>
-                                </div>
+                  </div>
                               ) : (
-                                <button
+                    <button
                                   className="absolute bottom-2 right-2 flex items-center justify-center bg-cyan-700 hover:bg-cyan-800 text-white rounded-full shadow-lg transition-all"
                                   style={{ width: '2.4rem', height: '2.4rem' }}
                                   onClick={() => handleAdd(dish)}
                                   aria-label="Add to cart"
                                 >
                                   <ShoppingCart size={18} />
-                                </button>
+                    </button>
                               )
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            </div>
                   ))}
                 </div>
               );
@@ -246,7 +246,7 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
             {/* Custom horizontal scroll indicator bar */}
             <div className="w-full h-1 bg-gray-200 rounded-full relative overflow-hidden mt-1">
               <div className="absolute left-0 top-0 h-full bg-cyan-500 rounded-full transition-all" style={{ width: '30%' }} />
-            </div>
+          </div>
           </>
         )}
       </div>
