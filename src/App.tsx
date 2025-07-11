@@ -31,6 +31,7 @@ const Search = React.lazy(() => import("./pages/Search"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const Profile = React.lazy(() => import("./pages/Profile"));
 const DeliveryDashboard = React.lazy(() => import("./pages/DeliveryDashboard"));
+const HotelsPage = React.lazy(() => import("./pages/HotelsPage"));
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
                       <Route path="/product/:id" element={<Product />} />
                       <Route path="/store/:id" element={<Store />} />
                       <Route path="/hotel-menu/:id" element={<HotelMenu />} />
+                      <Route path="/hotels" element={<HotelsPage />} />
                       <Route path="/cart" element={<Cart />} />
                       <Route path="/orders" element={<Orders />} />
                       <Route path="/order/:id" element={<OrderDetails />} />

@@ -259,86 +259,86 @@ const Index = () => {
               {/* Food Tab Content */}
               <TabsContent value="food" className="space-y-4">
                 <div className="container px-4 mx-auto">
-                  {/* Search Bar for Food Delivery (all screens) */}
+                {/* Search Bar for Food Delivery (all screens) */}
                   <div className="w-full mb-0"> {/* Set mb-0 to remove all extra space */}
-                    <form className="flex items-center rounded-full bg-white shadow px-3 py-2 border border-athani-200">
-                      <input
-                        type="search"
-                        placeholder="Search for dishes or restaurants..."
-                        className="flex-1 bg-transparent outline-none px-2 text-sm"
-                        style={{ minWidth: 0 }}
-                      />
-                      <button type="submit" className="ml-2 px-3 py-1.5 bg-athani-600 text-white rounded-full text-sm font-semibold">Search</button>
-                    </form>
-                  </div>
+                  <form className="flex items-center rounded-full bg-white shadow px-3 py-2 border border-athani-200">
+                    <input
+                      type="search"
+                      placeholder="Search for dishes or restaurants..."
+                      className="flex-1 bg-transparent outline-none px-2 text-sm"
+                      style={{ minWidth: 0 }}
+                    />
+                    <button type="submit" className="ml-2 px-3 py-1.5 bg-athani-600 text-white rounded-full text-sm font-semibold">Search</button>
+                  </form>
+                </div>
                 </div>
                 {/* Edge-to-edge wrapper for WhatsOnYourMindSection */}
                 <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw] px-0">
-                  <WhatsOnYourMindSection
-                    onCategorySelect={handleCategorySelect}
-                    selectedCategory={selectedCategory}
-                    dishes={normalizedDishes}
-                    isLoading={isLoading}
-                    onAddToCart={handleAddDishToCart}
+                <WhatsOnYourMindSection
+                  onCategorySelect={handleCategorySelect}
+                  selectedCategory={selectedCategory}
+                  dishes={normalizedDishes}
+                  isLoading={isLoading}
+                  onAddToCart={handleAddDishToCart}
                     onRemoveFromCart={handleRemoveDishFromCart}
                     hotels={hotels}
                     getDishCartQuantity={getDishCartQuantity}
-                  />
+                />
                 </div>
                 <div className="container px-4 mx-auto">
-                  {/* --- Enhanced Popular Restaurants Section (now more visually appealing & responsive) --- */}
-                  <section className="bg-white rounded-2xl p-6 sm:p-8 shadow-md border">
-                    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-8 gap-2">
-                      <div>
-                        <h3 className="text-2xl md:text-3xl font-bold text-athani-900 mb-1">Popular Restaurants</h3>
-                        <p className="text-gray-600 text-base md:text-lg">Discover trending restaurants and their signature dishes</p>
-                      </div>
-                      <Link
-                        to="/hotels"
-                        className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-athani-100 hover:bg-athani-200 text-athani-700 font-semibold text-sm md:text-base transition shadow-sm border border-athani-200"
-                      >
-                        View All
-                        <ChevronRight className="w-4 h-4" />
-                      </Link>
+                {/* --- Enhanced Popular Restaurants Section (now more visually appealing & responsive) --- */}
+                <section className="bg-white rounded-2xl p-6 sm:p-8 shadow-md border">
+                  <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-8 gap-2">
+                    <div>
+                      <h3 className="text-2xl md:text-3xl font-bold text-athani-900 mb-1">Popular Restaurants</h3>
+                      <p className="text-gray-600 text-base md:text-lg">Discover trending restaurants and their signature dishes</p>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                      {isLoading ? (
-                        <div className="col-span-full text-center py-12 text-gray-400 text-lg">Loading restaurants...</div>
-                      ) : hotels.length === 0 ? (
-                        <div className="col-span-full text-center py-12 text-gray-400 text-lg">No restaurants found.</div>
-                      ) : (
-                        hotels.map((hotel) => (
-                          <div key={hotel.id} className="group relative flex flex-col bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all overflow-hidden">
-                            <div className="relative h-40 sm:h-48 md:h-52 overflow-hidden">
-                              <img
-                                src={hotel.image}
-                                alt={hotel.name}
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                              />
-                              {/* Rating Badge */}
-                              <div className="absolute top-3 left-3 bg-white/90 px-2 py-1 rounded-md flex items-center text-sm font-semibold shadow">
-                                <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                                <span className="text-athani-900">{hotel.rating ?? 'N/A'}</span>
-                              </div>
-                              {/* Delivery Time Badge */}
-                              {hotel.deliveryTime && (
-                                <div className="absolute top-3 right-3 bg-athani-600 text-white px-2 py-1 rounded-md text-xs font-medium shadow">
-                                  {hotel.deliveryTime}
-                                </div>
-                              )}
+                    <Link
+                      to="/hotels"
+                      className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-athani-100 hover:bg-athani-200 text-athani-700 font-semibold text-sm md:text-base transition shadow-sm border border-athani-200"
+                    >
+                      View All
+                      <ChevronRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {isLoading ? (
+                      <div className="col-span-full text-center py-12 text-gray-400 text-lg">Loading restaurants...</div>
+                    ) : hotels.length === 0 ? (
+                      <div className="col-span-full text-center py-12 text-gray-400 text-lg">No restaurants found.</div>
+                    ) : (
+                      hotels.map((hotel) => (
+                        <div key={hotel.id} className="group relative flex flex-col bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all overflow-hidden">
+                          <div className="relative h-40 sm:h-48 md:h-52 overflow-hidden">
+                            <img
+                              src={hotel.image}
+                              alt={hotel.name}
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            />
+                            {/* Rating Badge */}
+                            <div className="absolute top-3 left-3 bg-white/90 px-2 py-1 rounded-md flex items-center text-sm font-semibold shadow">
+                              <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                              <span className="text-athani-900">{hotel.rating ?? 'N/A'}</span>
                             </div>
-                            <div className="flex-1 flex flex-col p-4">
-                              <h3 className="text-lg font-bold text-athani-900 mb-1 truncate">{hotel.name}</h3>
-                              <div className="flex items-center text-xs text-gray-500 mb-1 gap-1">
-                                <MapPin className="w-4 h-4 mr-1" />
-                                <span className="truncate">{typeof hotel.location === 'string' ? hotel.location : hotel.location?.address || 'N/A'}</span>
+                            {/* Delivery Time Badge */}
+                            {hotel.deliveryTime && (
+                              <div className="absolute top-3 right-3 bg-athani-600 text-white px-2 py-1 rounded-md text-xs font-medium shadow">
+                                {hotel.deliveryTime}
                               </div>
-                              <div className="text-xs text-gray-400 mb-2 truncate">{hotel.cuisine || 'N/A'}</div>
-                              {/* Popular Dishes Preview */}
-                              {hotel.dishes?.length > 0 && (
-                                <div className="mb-3">
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    {hotel.dishes.slice(0, 2).map((dish, idx) => {
+                            )}
+                          </div>
+                          <div className="flex-1 flex flex-col p-4">
+                            <h3 className="text-lg font-bold text-athani-900 mb-1 truncate">{hotel.name}</h3>
+                            <div className="flex items-center text-xs text-gray-500 mb-1 gap-1">
+                              <MapPin className="w-4 h-4 mr-1" />
+                              <span className="truncate">{typeof hotel.location === 'string' ? hotel.location : hotel.location?.address || 'N/A'}</span>
+                            </div>
+                            <div className="text-xs text-gray-400 mb-2 truncate">{hotel.cuisine || 'N/A'}</div>
+                            {/* Popular Dishes Preview */}
+                            {hotel.dishes?.length > 0 && (
+                              <div className="mb-3">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {hotel.dishes.slice(0, 2).map((dish, idx) => {
   let dishImg = dish.image;
   if (dishImg && !/^https?:\/\//.test(dishImg)) {
     dishImg = `${import.meta.env.VITE_STATIC_URL || 'http://localhost:4000'}/uploads/${dishImg}`;
@@ -357,49 +357,49 @@ const Index = () => {
     </div>
   );
 })}
-                                  </div>
                                 </div>
-                              )}
-                              <Button asChild className="mt-auto w-full bg-cyan-700 hover:bg-cyan-800 text-white font-semibold rounded-lg py-2 transition">
-                                <Link to={`/hotel-menu/${hotel.id}`}>View Menu</Link>
-                              </Button>
-                            </div>
-                            {/* Responsive shadow and scale effect */}
-                            <div className="absolute inset-0 pointer-events-none group-hover:ring-4 group-hover:ring-athani-200 transition"></div>
+                              </div>
+                            )}
+                            <Button asChild className="mt-auto w-full bg-cyan-700 hover:bg-cyan-800 text-white font-semibold rounded-lg py-2 transition">
+                              <Link to={`/hotel-menu/${hotel.id}`}>View Menu</Link>
+                            </Button>
                           </div>
-                        ))
-                      )}
-                    </div>
-                  </section>
+                          {/* Responsive shadow and scale effect */}
+                          <div className="absolute inset-0 pointer-events-none group-hover:ring-4 group-hover:ring-athani-200 transition"></div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </section>
 
-                  {/* Food Perfection Section */}
-                  <PerfectionSection
-                    title="Perfect Food Experience"
-                    description="Experience the finest dining with our curated selection of restaurants and dishes, delivered fresh to your doorstep."
-                    bgColor="bg-gradient-to-r from-orange-50 to-red-50"
-                    features={[
-                      {
-                        icon: "check",
-                        title: "Quality Assured",
-                        description: "Only the finest restaurants with highest quality standards"
-                      },
-                      {
-                        icon: "truck",
-                        title: "Hot Delivery",
-                        description: "Your food arrives hot and fresh, just like from the kitchen"
-                      },
-                      {
-                        icon: "clock",
-                        title: "Quick Service",
-                        description: "Fast preparation and delivery times for all your favorites"
-                      },
-                      {
-                        icon: "shield",
-                        title: "Safe & Hygienic",
-                        description: "Strict hygiene protocols followed by all our restaurant partners"
-                      }
-                    ]}
-                  />
+                {/* Food Perfection Section */}
+                <PerfectionSection
+                  title="Perfect Food Experience"
+                  description="Experience the finest dining with our curated selection of restaurants and dishes, delivered fresh to your doorstep."
+                  bgColor="bg-gradient-to-r from-orange-50 to-red-50"
+                  features={[
+                    {
+                      icon: "check",
+                      title: "Quality Assured",
+                      description: "Only the finest restaurants with highest quality standards"
+                    },
+                    {
+                      icon: "truck",
+                      title: "Hot Delivery",
+                      description: "Your food arrives hot and fresh, just like from the kitchen"
+                    },
+                    {
+                      icon: "clock",
+                      title: "Quick Service",
+                      description: "Fast preparation and delivery times for all your favorites"
+                    },
+                    {
+                      icon: "shield",
+                      title: "Safe & Hygienic",
+                      description: "Strict hygiene protocols followed by all our restaurant partners"
+                    }
+                  ]}
+                />
                 </div>
               </TabsContent>
               {/* Grocery Tab Content */}
