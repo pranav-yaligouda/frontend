@@ -13,6 +13,9 @@ import StickyCartBar from "@/components/cart/StickyCartBar";
 
 import * as React from "react";
 import Loader from "@/components/ui/Loader";
+import RequireHotelManager from "./pages/RequireHotelManager";
+import { HotelProvider } from "@/context/HotelContext";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const Index = React.lazy(() => import("./pages/Index"));
 const Login = React.lazy(() => import("./pages/Login"));
@@ -43,6 +46,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ScrollToTop />
             <StoreProvider>
               <div className="flex flex-col min-h-screen">
                 <Navbar />
@@ -60,7 +64,13 @@ const App = () => (
                       <Route path="/orders" element={<Orders />} />
                       <Route path="/order/:id" element={<OrderDetails />} />
                       <Route path="/store-dashboard" element={<StoreDashboard />} />
-                      <Route path="/hotel-dashboard" element={<HotelDashboard />} />
+                      <Route path="/hotel-dashboard" element={
+                        <RequireHotelManager>
+                          <HotelProvider>
+                            <HotelDashboard />
+                          </HotelProvider>
+                        </RequireHotelManager>
+                      } />
                       <Route path="/deliveries" element={<Deliveries />} />
                       <Route path="/delivery-dashboard" element={<DeliveryDashboard />} />
                       <Route path="/profile" element={<Profile />} />
