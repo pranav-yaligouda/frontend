@@ -1,34 +1,10 @@
 import * as React from "react";
 import { toast } from 'sonner';
 import { useState } from 'react';
-
-// Cart item interface
-export interface CartItem {
-  id: string;
-  productId: string;
-  name: string;
-  price: number;
-  image: string;
-  quantity: number;
-  storeId: string;
-  storeName: string;
-  type: 'product' | 'dish'; // NEW: distinguishes product vs dish
-}
-
-// Cart context interface
-interface CartContextType {
-  items: CartItem[];
-  addItem: (item: Omit<CartItem, 'quantity'>) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  clearCart: () => void;
-  getTotal: () => number;
-  getItemCount: () => number;
-  getStores: () => { storeId: string; storeName: string }[];
-}
+import type { CartItem, CartContextType } from '@/types/cart';
 
 // Create cart context
-const CartContext = React.createContext<CartContextType | undefined>(undefined);
+export const CartContext = React.createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = React.useState<CartItem[]>([]);
@@ -47,6 +23,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   React.useEffect(() => {
     localStorage.setItem('athani_cart', JSON.stringify(items));
   }, [items]);
+
+  // Cross-tab sync for robustness
+  React.useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'athani_cart') {
+        setItems(event.newValue ? JSON.parse(event.newValue) : []);
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   // Add item to cart
   const addItem = (item: Omit<CartItem, 'quantity'>) => {
@@ -162,7 +149,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {/* Prompt for clearing cart if user tries to add from a different store/hotel/type */}
       {showPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full" role="dialog" aria-modal="true">
             <h2 className="text-lg font-bold mb-2">Start a new order?</h2>
             <p className="mb-4">You can only order from one hotel or store at a time. Would you like to clear your cart and add this item?</p>
             <div className="flex justify-end gap-2">
@@ -174,12 +161,4 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       )}
     </CartContext.Provider>
   );
-};
-
-export const useCart = () => {
-  const context = React.useContext(CartContext);
-  if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
-  return context;
-};
+}

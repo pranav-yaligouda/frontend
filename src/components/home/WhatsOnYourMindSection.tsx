@@ -27,6 +27,7 @@ interface WhatsOnYourMindSectionProps {
   onAddToCart?: (dish: Dish) => void;
   onRemoveFromCart?: (dish: Dish) => void;
   hotels: { id: string; name: string }[];
+  getDishCartQuantity?: (dish: Dish) => number;
 }
 
 const DEFAULT_DISH_IMAGE = "/images/dishes/default.jpg";
@@ -47,6 +48,7 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
   onAddToCart,
   onRemoveFromCart,
   hotels,
+  getDishCartQuantity,
 }) => {
   // Use meal types from new DISH_CATEGORIES
   const mealTypes = Object.keys(DISH_CATEGORIES);
@@ -73,23 +75,7 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
     limit: 12,
   });
 
-  // Cart state for quantities (simulate, replace with your cart context if available)
-  const [cart, setCart] = React.useState<Record<string, number>>({});
-  const handleAdd = (dish: Dish) => {
-    setCart(prev => ({ ...prev, [dish.id]: (prev[dish.id] || 0) + 1 }));
-    onAddToCart?.(dish);
-  };
-  const handleRemove = (dish: Dish) => {
-    setCart(prev => {
-      const qty = (prev[dish.id] || 0) - 1;
-      if (qty <= 0) {
-        const { [dish.id]: _, ...rest } = prev;
-        return rest;
-      }
-      return { ...prev, [dish.id]: qty };
-    });
-    onRemoveFromCart?.(dish);
-  };
+  // Remove local cart state and handlers
 
   return (
     <section className="pt-0 pb-0 bg-white">
@@ -174,7 +160,7 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
                           style={{ flex: '0 0 auto' }}
               >
                 {/* Dish Image */}
-                          <div className="relative w-full" style={{ height: '70%', minHeight: '70%' }}>
+                          <div className="relative w-full" style={{ height: '60%', minHeight: '60%' }}>
                   <img
                     src={(() => {
                        const staticBase = import.meta.env.VITE_STATIC_URL;
@@ -207,21 +193,21 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
                             <div className="text-xs text-gray-500 leading-tight mt-0.5 mb-0">25–30 mins</div>
                             {/* Cart Button/Quantity - absolutely positioned bottom right */}
                             {onAddToCart && (
-                              cart[dish.id] ? (
+                              (getDishCartQuantity && getDishCartQuantity(dish)) ? (
                                 <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-cyan-700 rounded-full px-2 py-1 shadow-lg">
                                   <button
                                     className="text-white p-0.5 hover:bg-cyan-800 rounded"
                                     style={{ fontSize: '1rem', lineHeight: 1 }}
-                                    onClick={() => handleRemove(dish)}
+                                    onClick={() => onRemoveFromCart && onRemoveFromCart(dish)}
                                     aria-label="Decrease quantity"
                                   >
                                     <Minus size={16} />
                                   </button>
-                                  <span className="text-white font-semibold text-sm px-1 min-w-[1.5em] text-center">{cart[dish.id]}</span>
+                                  <span className="text-white font-semibold text-sm px-1 min-w-[1.5em] text-center">{getDishCartQuantity(dish)}</span>
                                   <button
                                     className="text-white p-0.5 hover:bg-cyan-800 rounded"
                                     style={{ fontSize: '1rem', lineHeight: 1 }}
-                                    onClick={() => handleAdd(dish)}
+                                    onClick={() => onAddToCart(dish)}
                                     aria-label="Increase quantity"
                                   >
                                     <Plus size={16} />
@@ -231,7 +217,7 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
                     <button
                                   className="absolute bottom-2 right-2 flex items-center justify-center bg-cyan-700 hover:bg-cyan-800 text-white rounded-full shadow-lg transition-all"
                                   style={{ width: '2.4rem', height: '2.4rem' }}
-                                  onClick={() => handleAdd(dish)}
+                                  onClick={() => onAddToCart(dish)}
                                   aria-label="Add to cart"
                                 >
                                   <ShoppingCart size={18} />

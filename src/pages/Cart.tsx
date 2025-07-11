@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/context/CartContext";
+import { useCart } from "@/context/useCart";
 import { useAuth, UserRole } from "@/context/AuthContext";
 import { Trash, Plus, Minus, ChevronLeft, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";

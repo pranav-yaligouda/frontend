@@ -8,7 +8,7 @@ import CategoryCard from "@/components/category/CategoryCard";
 import StoreCard from "@/components/store/StoreCard";
 import PerfectionSection from "@/components/home/PerfectionSection";
 import { ChevronRight, Star, MapPin } from "lucide-react";
-import { useCart } from "@/context/CartContext";
+import { useCart } from "@/context/useCart";
 import { toast } from "sonner";
 
 import WhatsOnYourMindSection from "@/components/home/WhatsOnYourMindSection";
@@ -39,7 +39,7 @@ const Index = () => {
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [normalizedDishes, setNormalizedDishes] = useState<Dish[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { addItem } = useCart();
+  const { addItem, updateQuantity, removeItem, items: cartItems } = useCart();
 
   const [groceryStores, setGroceryStores] = useState<Store[]>([]);
   const [groceryProducts, setGroceryProducts] = useState<Product[]>([]);
@@ -152,6 +152,26 @@ const Index = () => {
     toast.success(`${dish.name} added to cart!`);
   };
 
+  const handleRemoveDishFromCart = (dish: Dish) => {
+    const cartId = `${dish.hotelId}_${dish.id}`;
+    const cartItem = cartItems.find(item => item.id === cartId);
+    if (cartItem) {
+      if (cartItem.quantity > 1) {
+        updateQuantity(cartId, cartItem.quantity - 1);
+      } else {
+        removeItem(cartId);
+      }
+      toast.info(`${dish.name} removed from cart.`);
+    }
+  };
+
+  // Helper to get current quantity for a dish
+  const getDishCartQuantity = (dish: Dish) => {
+    const cartId = `${dish.hotelId}_${dish.id}`;
+    const cartItem = cartItems.find(item => item.id === cartId);
+    return cartItem ? cartItem.quantity : 0;
+  };
+
   const [selectedCategory, setSelectedCategory] = useState<string>("food_delivery");
   const sectionRefs = {
     food_delivery: useRef<HTMLDivElement>(null),
@@ -256,7 +276,9 @@ const Index = () => {
                   dishes={normalizedDishes}
                   isLoading={isLoading}
                   onAddToCart={handleAddDishToCart}
+                  onRemoveFromCart={handleRemoveDishFromCart}
                   hotels={hotels}
+                  getDishCartQuantity={getDishCartQuantity}
                 />
                 {/* --- Enhanced Popular Restaurants Section (now more visually appealing & responsive) --- */}
                 <section className="bg-white rounded-2xl p-6 sm:p-8 shadow-md border">

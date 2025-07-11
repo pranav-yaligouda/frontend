@@ -4,7 +4,7 @@ import { ShoppingCart, User, Search, PhoneCall, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth, UserRole } from "@/context/AuthContext";
-import { useCart } from "@/context/CartContext";
+import { useCart } from "@/context/useCart";
 import {
   DropdownMenu,
   DropdownMenuContent,

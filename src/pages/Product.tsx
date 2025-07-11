@@ -3,7 +3,7 @@ import Loader from "@/components/ui/Loader";
 import { useParams, Link } from "react-router-dom";
 import { ChevronLeft, ShoppingCart, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/context/CartContext";
+import { useCart } from "@/context/useCart";
 import type { Product as ProductType } from "@/types/product";
 import { toast } from "sonner";
 
