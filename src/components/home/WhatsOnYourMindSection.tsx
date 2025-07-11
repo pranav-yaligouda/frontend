@@ -25,6 +25,7 @@ interface WhatsOnYourMindSectionProps {
   dishes: Dish[];
   isLoading: boolean;
   onAddToCart?: (dish: Dish) => void;
+  onRemoveFromCart?: (dish: Dish) => void;
   hotels: { id: string; name: string }[];
 }
 
@@ -44,6 +45,7 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
   selectedCategory,
   isLoading: parentLoading = false,
   onAddToCart,
+  onRemoveFromCart,
   hotels,
 }) => {
   // Use meal types from new DISH_CATEGORIES
@@ -86,6 +88,7 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
       }
       return { ...prev, [dish.id]: qty };
     });
+    onRemoveFromCart?.(dish);
   };
 
   return (
@@ -189,7 +192,7 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
                   />
                             {/* Hotel Name Overlay */}
                             <div className="absolute left-2 bottom-2 bg-black/60 px-3 py-1 rounded-lg text-white text-sm font-bold shadow-md max-w-[80%] truncate">
-                              {hotelNameMap[dish.hotelId] || dish.hotelName || "Unknown Hotel"}
+                              {dish.hotelName || hotelNameMap[dish.hotelId] || "Unknown Hotel"}
                             </div>
                   {/* Price badge */}
                   <div className="absolute top-3 right-3 bg-white/90 px-3 py-1 rounded-full text-athani-900 font-bold shadow text-sm">
