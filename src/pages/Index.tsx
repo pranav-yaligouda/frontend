@@ -101,7 +101,7 @@ const Index = () => {
             }
             // Robust normalization: always set id from _id and hotelId from hotel._id or fallback to dish.hotel
             const dishId = hotelDish._id || hotelDish.id;
-            const hotelId = hotel._id || hotel.id || hotelDish.hotel;
+            const hotelId = hotel._id || hotel.id || hotelDish.hotelId;
             if (!dishId || !hotelId) {
               if (typeof window !== 'undefined' && window.console) {
                 window.console.warn('Skipping dish with missing _id or hotelId:', { hotelDish, hotel });
@@ -236,9 +236,9 @@ const Index = () => {
               </div>
 
               {/* Food Tab Content */}
-              <TabsContent value="food" className="space-y-12">
+              <TabsContent value="food" className="space-y-4">
                 {/* Search Bar for Food Delivery (all screens) */}
-                <div className="w-full mb-4">
+                <div className="w-full mb-0"> {/* Set mb-0 to remove all extra space */}
                   <form className="flex items-center rounded-full bg-white shadow px-3 py-2 border border-athani-200">
                     <input
                       type="search"
@@ -256,6 +256,7 @@ const Index = () => {
                   dishes={normalizedDishes}
                   isLoading={isLoading}
                   onAddToCart={handleAddDishToCart}
+                  hotels={hotels}
                 />
                 {/* --- Enhanced Popular Restaurants Section (now more visually appealing & responsive) --- */}
                 <section className="bg-white rounded-2xl p-6 sm:p-8 shadow-md border">

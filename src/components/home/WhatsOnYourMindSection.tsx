@@ -16,6 +16,7 @@ import type { Dish } from "@/types/dish";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useDishes } from '@/hooks/useDishes';
+import { ShoppingCart, Minus, Plus } from 'lucide-react';
 
 
 interface WhatsOnYourMindSectionProps {
@@ -24,15 +25,26 @@ interface WhatsOnYourMindSectionProps {
   dishes: Dish[];
   isLoading: boolean;
   onAddToCart?: (dish: Dish) => void;
+  hotels: { id: string; name: string }[];
 }
 
 const DEFAULT_DISH_IMAGE = "/images/dishes/default.jpg";
+
+// Helper to chunk array into groups of 2
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  const result: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    result.push(arr.slice(i, i + size));
+  }
+  return result;
+}
 
 const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
   onCategorySelect,
   selectedCategory,
   isLoading: parentLoading = false,
   onAddToCart,
+  hotels,
 }) => {
   // Use meal types from new DISH_CATEGORIES
   const mealTypes = Object.keys(DISH_CATEGORIES);
@@ -44,6 +56,13 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
     return selectedMealType ? Object.keys(DISH_CATEGORIES[selectedMealType] || {}) : [];
   }, [selectedMealType]);
 
+  // Create a hotelId → hotelName map
+  const hotelNameMap = React.useMemo(() => {
+    const map: Record<string, string> = {};
+    hotels.forEach(hotel => { map[hotel.id] = hotel.name; });
+    return map;
+  }, [hotels]);
+
   // Use React Query for dishes
   const { data: filteredDishes = [], isLoading: dishesLoading, isError: dishesError } = useDishes({
     mealType: selectedMealType,
@@ -52,9 +71,25 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
     limit: 12,
   });
 
+  // Cart state for quantities (simulate, replace with your cart context if available)
+  const [cart, setCart] = React.useState<Record<string, number>>({});
+  const handleAdd = (dish: Dish) => {
+    setCart(prev => ({ ...prev, [dish.id]: (prev[dish.id] || 0) + 1 }));
+    onAddToCart?.(dish);
+  };
+  const handleRemove = (dish: Dish) => {
+    setCart(prev => {
+      const qty = (prev[dish.id] || 0) - 1;
+      if (qty <= 0) {
+        const { [dish.id]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [dish.id]: qty };
+    });
+  };
 
   return (
-    <section className="py-4 bg-white">
+    <section className="pt-0 pb-0 bg-white">
       <h2 className="text-2xl font-bold mb-3 px-2 sm:px-4">What's on your mind?</h2>
       {/* Horizontal scrollable meal types (category selector) */}
       <div className="flex overflow-x-auto gap-4 px-2 sm:px-4 no-scrollbar py-2 bg-white" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -112,69 +147,112 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
         ) : filteredDishes.length === 0 ? (
           <div className="text-center py-8 text-gray-400">No dishes found for this selection.</div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-md border border-athani-100 p-4 sm:p-6 mt-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredDishes.map((dish, idx) => (
-              <div
-                key={dish.id || `${dish.name}-${dish.hotelName}-${idx}`}
-                className="bg-white rounded-2xl shadow-lg border border-athani-100 hover:shadow-2xl transition-all duration-200 overflow-hidden flex flex-col p-0 group relative"
-              >
-                {/* Dish Image */}
-                <div className="relative w-full h-44 sm:h-48 bg-athani-50 overflow-hidden">
-                  <img
-                    src={(() => {
-                       const staticBase = import.meta.env.VITE_STATIC_URL;
-                       if (!staticBase) {
-                         throw new Error('VITE_STATIC_URL environment variable is not set. Please configure it in your .env file.');
-                       }
-                       return dish.image && !/^https?:\/\/.*/.test(dish.image)
-                         ? `${staticBase}/uploads/${dish.image}`
-                         : dish.image || DEFAULT_DISH_IMAGE;
-                    })()}
-                    alt={dish.name}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                  {/* Price badge */}
-                  <div className="absolute top-3 right-3 bg-white/90 px-3 py-1 rounded-full text-athani-900 font-bold shadow text-sm">
-                    ₹{dish.price}
-                  </div>
-                  {/* Offer badge example */}
-                  <div className="absolute top-3 left-3 bg-yellow-300 text-red-700 font-extrabold px-2 py-1 rounded shadow text-xs">
-                    FLAT 50% OFF
-                  </div>
-                </div>
-                {/* Dish Details */}
-                <div className="flex-1 flex flex-col p-4 gap-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    {/* Hotel Name */}
-                    <span className="text-base font-bold text-athani-700 truncate block">{dish.hotelName}</span>
-                    {/* Rating */}
-                    <span className="ml-auto flex items-center gap-1 text-green-700 font-semibold text-sm bg-green-100 px-2 py-0.5 rounded-full"><svg width='16' height='16' fill='currentColor' className='inline'><circle cx='8' cy='8' r='8'/></svg>4.0</span>
-                  </div>
-                  {/* Dish Name */}
-                  <div className="text-lg font-bold text-gray-900 truncate">{dish.name}</div>
-                  {/* Meta: time, distance */}
-                  <div className="flex items-center gap-3 text-xs text-gray-500 mb-2">
-                    <span>30-35 mins</span>
-                    <span>•</span>
-                    <span>1.3 km</span>
-                  </div>
-                  {/* Badges row removed: Veg/Non-Veg tag no longer shown */}
-                  {/* Add to Cart Button */}
-                  {onAddToCart && (
-                    <button
-                      className="mt-2 px-4 py-2 bg-cyan-700 hover:bg-cyan-800 text-white rounded-lg font-semibold transition-all"
-                      onClick={() => onAddToCart(dish)}
+          <>
+            {/** Chunk dishes into columns of 2 */}
+            {(() => {
+              const dishColumns = chunkArray(filteredDishes, 2);
+              return (
+                <div
+                  className="flex overflow-x-auto gap-4 no-scrollbar snap-x snap-mandatory pb-2"
+                  tabIndex={0}
+                  aria-label="Dishes"
+                  style={{ WebkitOverflowScrolling: 'touch' }}
+                >
+                  {dishColumns.map((column: Dish[], colIdx: number) => (
+                    <div
+                      key={colIdx}
+                      className="flex flex-col gap-4 snap-start min-w-[48vw] max-w-[48vw] sm:min-w-[260px] sm:max-w-[320px]"
+                      style={{ flex: '0 0 auto' }}
                     >
-                      Add to Cart
-                    </button>
-                  )}
+                      {column.map((dish: Dish, idx: number) => (
+                        <div
+                          key={dish.id || `${dish.name}-${dish.hotelName}-${idx}`}
+                          className="bg-white rounded-2xl shadow-lg border border-athani-100 hover:shadow-2xl transition-all duration-200 overflow-hidden flex flex-col p-0 group relative w-full aspect-square min-w-[48vw] h-[48vw] sm:min-w-[260px] sm:h-[260px] lg:min-w-[320px] lg:h-[320px]"
+                          style={{ flex: '0 0 auto' }}
+                        >
+                          {/* Dish Image */}
+                          <div className="relative w-full" style={{ height: '60%', minHeight: '60%' }}>
+                            <img
+                              src={(() => {
+                                const staticBase = import.meta.env.VITE_STATIC_URL;
+                                if (!staticBase) {
+                                  throw new Error('VITE_STATIC_URL environment variable is not set. Please configure it in your .env file.');
+                                }
+                                return dish.image && !/^https?:\/\/.*/.test(dish.image)
+                                  ? `${staticBase}/uploads/${dish.image}`
+                                  : dish.image || DEFAULT_DISH_IMAGE;
+                              })()}
+                              alt={dish.name}
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              loading="lazy"
+                              style={{ objectFit: 'cover' }}
+                            />
+                            {/* Hotel Name Overlay */}
+                            <div className="absolute left-2 bottom-2 bg-black/60 px-3 py-1 rounded-lg text-white text-sm font-bold shadow-md max-w-[80%] truncate">
+                              {hotelNameMap[dish.hotelId] || dish.hotelName || "Unknown Hotel"}
+                            </div>
+                            {/* Price badge */}
+                            <div className="absolute top-3 right-3 bg-white/90 px-3 py-1 rounded-full text-athani-900 font-bold shadow text-sm">
+                              ₹{dish.price}
+                            </div>
+                            {/* Offer badge example */}
+                            <div className="absolute top-3 left-3 bg-yellow-300 text-red-700 font-extrabold px-2 py-1 rounded shadow text-xs">
+                              FLAT 50% OFF
+                            </div>
+                          </div>
+                          {/* Dish Details */}
+                          <div className="flex-1 flex flex-col p-2 gap-0 justify-between">
+                            {/* Dish Name and Add to Cart Button Inline */}
+                            <div className="flex items-center justify-between mb-0.5 gap-2">
+                              <div className="text-base font-bold text-gray-900 truncate">{dish.name}</div>
+                              {onAddToCart && (
+                                cart[dish.id] ? (
+                                  <div className="flex items-center gap-1 bg-cyan-700 rounded-lg px-2 py-0.5">
+                                    <button
+                                      className="text-white p-0.5 hover:bg-cyan-800 rounded"
+                                      style={{ fontSize: '1rem', lineHeight: 1 }}
+                                      onClick={() => handleRemove(dish)}
+                                      aria-label="Decrease quantity"
+                                    >
+                                      <Minus size={16} />
+                                    </button>
+                                    <span className="text-white font-semibold text-sm px-1 min-w-[1.5em] text-center">{cart[dish.id]}</span>
+                                    <button
+                                      className="text-white p-0.5 hover:bg-cyan-800 rounded"
+                                      style={{ fontSize: '1rem', lineHeight: 1 }}
+                                      onClick={() => handleAdd(dish)}
+                                      aria-label="Increase quantity"
+                                    >
+                                      <Plus size={16} />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    className="ml-2 flex items-center gap-1 px-2 py-1 bg-cyan-700 hover:bg-cyan-800 text-white rounded-lg font-semibold text-xs shadow transition-all whitespace-nowrap"
+                                    style={{ minHeight: '1.8rem', minWidth: 'auto', padding: '0 0.5rem' }}
+                                    onClick={() => handleAdd(dish)}
+                                  >
+                                    <ShoppingCart size={16} className="mr-1" />
+                                    Add
+                                  </button>
+                                )
+                              )}
+                            </div>
+                            {/* Only time, directly below dish name, minimal space */}
+                            <div className="text-xs text-gray-500 leading-tight mt-0.5 mb-0">25–30 mins</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ))}
+              );
+            })()}
+            {/* Custom horizontal scroll indicator bar */}
+            <div className="w-full h-1 bg-gray-200 rounded-full relative overflow-hidden mt-1">
+              <div className="absolute left-0 top-0 h-full bg-cyan-500 rounded-full transition-all" style={{ width: '30%' }} />
             </div>
-          </div>
+          </>
         )}
       </div>
     </section>
