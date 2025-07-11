@@ -78,10 +78,10 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
   // Remove local cart state and handlers
 
   return (
-    <section className="pt-0 pb-0 bg-white">
-      <h2 className="text-2xl font-bold mb-3 px-2 sm:px-4">What's on your mind?</h2>
+    <section className="pt-0 pb-0 bg-white w-full m-0 p-0">
+      <h2 className="text-2xl font-bold mb-3">What's on your mind?</h2>
       {/* Horizontal scrollable meal types (category selector) */}
-      <div className="flex overflow-x-auto gap-4 px-2 sm:px-4 no-scrollbar py-2 bg-white" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className="flex overflow-x-auto gap-4 no-scrollbar py-2 bg-white" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {mealTypes.map((meal) => (
           <button
             key={meal}
@@ -114,7 +114,7 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
 
       {/* Subcategory chips: show ONLY if meal type is selected */}
       {selectedMealType !== "" && mealCategories.length > 0 && (
-        <div className="flex gap-2 px-2 sm:px-4 py-2 overflow-x-auto items-center no-scrollbar" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+        <div className="flex gap-2 py-2 overflow-x-auto items-center no-scrollbar" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
           {mealCategories.map((cat) => (
             <button
               key={cat}
@@ -128,7 +128,7 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
       )}
 
       {/* Dish grid and loading/empty states directly follow the filter bar, with no extra pills or divider */}
-      <div className="px-2 sm:px-4">
+      <div>
         {dishesLoading && selectedMealType !== "" ? (
           <div className="text-center py-8 text-athani-500 font-medium animate-pulse">Loading dishes...</div>
         ) : selectedMealType === "" ? (
@@ -217,9 +217,9 @@ const WhatsOnYourMindSection: React.FC<WhatsOnYourMindSectionProps> = ({
                     <button
                                   className="absolute bottom-2 right-2 flex items-center justify-center bg-cyan-700 hover:bg-cyan-800 text-white rounded-full shadow-lg transition-all"
                                   style={{ width: '2.4rem', height: '2.4rem' }}
-                                  onClick={() => onAddToCart(dish)}
+                      onClick={() => onAddToCart(dish)}
                                   aria-label="Add to cart"
-                                >
+                    >
                                   <ShoppingCart size={18} />
                     </button>
                               )
