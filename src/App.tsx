@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { RouterProvider } from "react-router-dom";
+import router from "./router";
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from "@/context/CartContext";
 import { StoreProvider } from '@/context/StoreContext';
@@ -45,45 +46,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
-            <ScrollToTop />
-            <StoreProvider>
-              <div className="flex flex-col min-h-screen">
-                <Navbar />
-                <main className="flex-grow">
-                  <React.Suspense fallback={<Loader />}>
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/category/:id" element={<Category />} />
-                      <Route path="/product/:id" element={<Product />} />
-                      <Route path="/hotel-menu/:id" element={<HotelMenu />} />
-                      <Route path="/hotels" element={<HotelsPage />} />
-                      <Route path="/stores" element={<StoresPage />} />
-                      <Route path="/cart" element={<Cart />} />
-                      <Route path="/orders" element={<Orders />} />
-                      <Route path="/order/:id" element={<OrderDetails />} />
-                      <Route path="/store-dashboard" element={<StoreDashboard />} />
-                      <Route path="/hotel-dashboard" element={
-                        <RequireHotelManager>
-                          <HotelProvider>
-                            <HotelDashboard />
-                          </HotelProvider>
-                        </RequireHotelManager>
-                      } />
-                      <Route path="/deliveries" element={<Deliveries />} />
-                      <Route path="/delivery-dashboard" element={<DeliveryDashboard />} />
-                      <Route path="/profile" element={<Profile />} />
-                      <Route path="/search" element={<Search />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </React.Suspense>
-                </main>
-                <StickyCartBar />
-                <Footer />
-              </div>
-            </StoreProvider>
-          </BrowserRouter>
+          <RouterProvider router={router} />
         </TooltipProvider>
       </CartProvider>
     </AuthProvider>
