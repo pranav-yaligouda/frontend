@@ -1,19 +1,48 @@
 {
   "name": "Athani Mart",
-  "short_name": "AthaniMart",
-  "start_url": ".",
+  "short_name": "Athani",
+  "description": "Order groceries and food with Athani Mart.",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#00b894",
-  "description": "Order groceries and food from Athani Mart.",
+  "background_color": "#e9e4d8",
+  "theme_color": "#388e3c",
   "icons": [
     {
-      "src": "/athani.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/maskable-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/maskable-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
     }
-  ],
-  "scope": "/",
-  "orientation": "portrait"
+  ]
 }

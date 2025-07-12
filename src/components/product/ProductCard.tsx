@@ -35,13 +35,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, availableStores = []
     >
       <div className="w-full" style={{ height: '50%' }}>
         <div className="w-full h-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center" style={{ height: '100%' }}>
-          <img
-            src={product.image || 'https://media.gettyimages.com/id/1450154366/vector/podium-stands.jpg?s=612x612&w=gi&k=20&c=epU6kxl9DkuKzc5YQ03fkk3jBMzn1aB-pk7h_rO28Rg='}
-            alt={product.name}
+      <img
+        src={product.image || 'https://media.gettyimages.com/id/1450154366/vector/podium-stands.jpg?s=612x612&w=gi&k=20&c=epU6kxl9DkuKzc5YQ03fkk3jBMzn1aB-pk7h_rO28Rg='}
+        alt={product.name}
             className="object-cover w-full h-full"
-            loading="lazy"
-            onError={e => (e.currentTarget.src = '/images/products/default.jpg')}
-          />
+        loading="lazy"
+        onError={e => (e.currentTarget.src = '/images/products/default.jpg')}
+      />
         </div>
       </div>
       {/* Store name badge */}
@@ -69,13 +69,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, availableStores = []
           {product.rating && (
             <span className="flex items-center text-yellow-500 text-xs" aria-label={`Rating: ${product.rating}`}>
               <Star className="w-3.5 h-3.5 mr-0.5" /> {product.rating}
-            </span>
-          )}
+        </span>
+      )}
         </div>
         {/* Available quantity */}
         {typeof availableQuantity === 'number' && (
           <div className="text-[11px] text-gray-500 mb-1">In stock: <span className="font-semibold text-green-700">{availableQuantity}</span></div>
-        )}
+      )}
         <div className="flex flex-col gap-1 mt-auto w-full">
           {/* Cart controls or Add to Cart */}
           {cartQuantity > 0 && increment && decrement ? (
@@ -83,7 +83,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, availableStores = []
               <Button onClick={() => decrement(product)} size="icon" variant="ghost" className="text-green-700 font-bold text-base px-1 h-6 w-6 min-w-0 min-h-0" aria-label="Decrease quantity">-</Button>
               <span className="font-bold text-green-900 text-base px-1 min-w-[20px] text-center">{cartQuantity}</span>
               <Button onClick={() => increment(product)} size="icon" variant="ghost" className="text-green-700 font-bold text-base px-1 h-6 w-6 min-w-0 min-h-0" aria-label="Increase quantity" disabled={availableQuantity !== undefined && cartQuantity >= availableQuantity}>+</Button>
-            </div>
+      </div>
           ) : addToCart && (
             <Button
               onClick={handleAddToCart}
@@ -93,8 +93,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, availableStores = []
             >
               <Plus className="w-4 h-4 mr-1" />
               {availableQuantity === 0 ? 'Out of Stock' : 'Add to Cart'}
-            </Button>
-          )}
+        </Button>
+      )}
         </div>
       </div>
       {/* Modal for available stores */}

@@ -58,7 +58,7 @@ const HotelCard = ({ hotel }: HotelCardProps) => {
           <MapPin className="w-4 h-4" />
           {typeof hotel.location === 'string' ? hotel.location : hotel.location?.address || 'N/A'}
         </span>
-      </div>
+        </div>
       {/* Popular Dishes */}
       {hotel.dishes && hotel.dishes.length > 0 && (
         <div className="px-4 mt-2 mb-3">
@@ -68,10 +68,10 @@ const HotelCard = ({ hotel }: HotelCardProps) => {
               <span key={dish.id || idx} className="flex items-center gap-1 bg-gray-50 rounded-full px-2 py-1 text-xs font-medium shadow-sm">
                 <img
                   src={(() => {
-                    const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api/v1').replace(/\/api\/v1$/, '');
+                      const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api/v1').replace(/\/api\/v1$/, '');
                     return dish.image && !/^https?:\/.*/.test(dish.image)
-                      ? `${apiBase}/uploads/${dish.image}`
-                      : dish.image;
+                        ? `${apiBase}/uploads/${dish.image}`
+                        : dish.image;
                   })()}
                   alt={dish.name}
                   className="w-5 h-5 rounded-full object-cover border border-athani-100"
@@ -88,7 +88,7 @@ const HotelCard = ({ hotel }: HotelCardProps) => {
         {hotelId ? (
           <Button asChild className="w-full rounded-full bg-athani-600 hover:bg-athani-700 text-white font-semibold py-2 text-base shadow-md mt-2">
             <Link to={`/hotel-menu/${hotelId}`}>View Menu</Link>
-          </Button>
+            </Button>
         ) : (
           <Button disabled className="w-full rounded-full mt-2">No Menu</Button>
         )}
