@@ -38,22 +38,22 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, userRole, onAction }) => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-2">
         <div className="flex-1 min-w-0">
           <div className="text-sm text-gray-700 mb-1">
-            <span className="font-medium">Items:</span> {order.items.length}
-          </div>
+          <span className="font-medium">Items:</span> {order.items.length}
+        </div>
           <div className="text-sm text-gray-700 mb-1">
             <span className="font-medium">Total:</span> ₹{orderTotal.toFixed(2)}
+      </div>
+        {userRole === UserRole.CUSTOMER && (
+            <div className="text-sm text-gray-700 mb-1">
+            <span className="font-medium">Delivery Address:</span> {order.deliveryAddress?.addressLine ?? ''}
           </div>
-          {userRole === UserRole.CUSTOMER && (
+        )}
+        {(userRole === UserRole.HOTEL_MANAGER || userRole === UserRole.STORE_OWNER) && (
             <div className="text-sm text-gray-700 mb-1">
-              <span className="font-medium">Delivery Address:</span> {order.deliveryAddress?.addressLine ?? ''}
-            </div>
-          )}
-          {(userRole === UserRole.HOTEL_MANAGER || userRole === UserRole.STORE_OWNER) && (
-            <div className="text-sm text-gray-700 mb-1">
-              <span className="font-medium">Customer:</span> {order.customerId}
-            </div>
-          )}
-        </div>
+            <span className="font-medium">Customer:</span> {order.customerId}
+          </div>
+        )}
+          </div>
         <div className="flex flex-col gap-2 items-end min-w-[120px]">
           <Link
             to={`/order/${orderId}`}
@@ -62,7 +62,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, userRole, onAction }) => {
             aria-label={`View details for order ${orderId}`}
           >
             View Details
-          </Link>
+        </Link>
           <OrderActions order={order} userRole={userRole} onAction={onAction} />
         </div>
       </div>

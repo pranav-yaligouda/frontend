@@ -75,10 +75,10 @@ const StoreCard = ({ store }: StoreCardProps) => {
             <div className="flex flex-wrap gap-1 mt-1">
               {(store.categories || []).map((category, idx) => (
                 <span key={idx} className="bg-athani-600/80 text-white text-xs rounded-full px-2 py-0.5 font-medium truncate">
-                  {category}
-                </span>
-              ))}
-            </div>
+                {category}
+              </span>
+            ))}
+          </div>
           </div>
         </div>
         {/* Info pills */}

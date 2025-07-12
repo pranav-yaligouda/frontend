@@ -127,7 +127,7 @@ const StoreDashboard: React.FC = () => {
             }
           } finally {
             setSubmitting(false);
-          }
+      }
         }}
       />
     );

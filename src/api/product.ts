@@ -31,5 +31,5 @@ export const getStoreProducts = (storeId: string, params: { category?: string })
   API.get<{ data: { items: Product[] } }>(`/stores/${storeId}/products`, { params });
 
 // Fetch all products available in any store (store inventory)
-export const getAllStoreProducts = () =>
-  API.get<{ data: { items: Product[] } }>('/products/store-products');
+export const getAllStoreProducts = (params?: { storeId?: string; category?: string; search?: string; page?: number; limit?: number }) =>
+  API.get<{ data: { items: Product[]; page: number; limit: number; totalItems: number; totalPages: number } }>('/products/store-products', { params });
