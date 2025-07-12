@@ -76,10 +76,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, availableStores = []
         {typeof availableQuantity === 'number' && (
           <div className="text-[11px] text-gray-500 mb-1">In stock: <span className="font-semibold text-green-700">{availableQuantity}</span></div>
         )}
-        <div className="flex flex-col gap-1 mt-auto">
+        <div className="flex flex-col gap-1 mt-auto w-full">
           {/* Cart controls or Add to Cart */}
           {cartQuantity > 0 && increment && decrement ? (
-            <div className="flex items-center justify-center gap-1 bg-green-50 rounded-full py-0.5 px-1 mb-1 border border-green-200">
+            <div className="flex items-center justify-center gap-1 bg-green-50 rounded-full py-0.5 px-1 mb-1 border border-green-200 w-full">
               <Button onClick={() => decrement(product)} size="icon" variant="ghost" className="text-green-700 font-bold text-base px-1 h-6 w-6 min-w-0 min-h-0" aria-label="Decrease quantity">-</Button>
               <span className="font-bold text-green-900 text-base px-1 min-w-[20px] text-center">{cartQuantity}</span>
               <Button onClick={() => increment(product)} size="icon" variant="ghost" className="text-green-700 font-bold text-base px-1 h-6 w-6 min-w-0 min-h-0" aria-label="Increase quantity" disabled={availableQuantity !== undefined && cartQuantity >= availableQuantity}>+</Button>
@@ -95,14 +95,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, availableStores = []
               {availableQuantity === 0 ? 'Out of Stock' : 'Add to Cart'}
             </Button>
           )}
-          {/* View Availability button, always present, smaller and below Add to Cart */}
-          <Button
-            onClick={handleQuickView}
-            className="w-full bg-gray-100 text-gray-700 hover:bg-gray-200 font-semibold rounded-lg py-1 text-xs mt-0.5 transition border border-gray-200 min-h-0 min-w-0"
-            aria-label={`View availability for ${product.name}`}
-          >
-            View Availability
-          </Button>
         </div>
       </div>
       {/* Modal for available stores */}
